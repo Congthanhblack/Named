@@ -19,9 +19,8 @@
 
         .cyber-border { border: 1px solid #004411; background: rgba(0, 5, 0, 0.9); }
         
-        /* Hiệu ứng nhiễu sóng khi camera lỗi */
         .glitch-bg {
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 255, 0, 0.06));
             background-size: 100% 2px, 3px 100%;
         }
 
@@ -30,7 +29,6 @@
             font-family: 'JetBrains Mono', monospace; font-size: 12px;
         }
 
-        /* Modal Công văn chính phủ */
         .paper-alert {
             background: #fff; color: #000; max-width: 600px; padding: 30px;
             font-family: 'Times New Roman', serif; border: 5px double #cc0000;
@@ -45,7 +43,7 @@
         .blink { animation: blinker 1s linear infinite; }
         @keyframes blinker { 50% { opacity: 0; } }
 
-        #login-layer {
+        #login-layer, #exit-layer {
             background: radial-gradient(circle, #001100 0%, #000 100%);
         }
     </style>
@@ -75,6 +73,25 @@
         </div>
     </div>
 
+    <div id="exit-layer" class="fixed inset-0 z-[150] hidden flex items-center justify-center">
+        <div class="w-[450px] border-2 border-red-600 bg-black p-10 text-center font-mono">
+            <i class="fas fa-power-off text-4xl text-red-600 mb-4"></i>
+            <h2 class="text-lg text-white font-bold mb-6">PHIÊN TRUY CẬP ĐÃ KẾT THÚC</h2>
+            
+            <div class="text-left text-xs space-y-2 border-y border-red-900/50 py-4 mb-6">
+                <div class="flex justify-between"><span>ĐỊA CHỈ IP:</span> <span class="text-white">14.226.55.184</span></div>
+                <div class="flex justify-between"><span>THỜI GIAN KẾT THÚC:</span> <span id="exit-time" class="text-white">--:--:--</span></div>
+                <div class="flex justify-between"><span>THỜI LƯỢNG TRUY CẬP:</span> <span id="access-duration" class="text-white">0s</span></div>
+                <div class="flex justify-between"><span>TỔNG SỐ NHẬT KÝ GHI:</span> <span id="log-count" class="text-white">0</span></div>
+            </div>
+
+            <p class="text-[9px] text-gray-600 mb-6">Mọi dữ liệu tạm thời đã được xóa khỏi Cache hệ thống.</p>
+            <button onclick="location.reload()" class="px-8 py-2 border border-green-600 text-green-600 hover:bg-green-600 hover:text-black transition uppercase text-xs font-bold">
+                Trở lại màn hình chính
+            </button>
+        </div>
+    </div>
+
     <div id="main-dashboard" class="hidden flex flex-col h-full space-y-1">
         
         <header class="h-12 cyber-border flex items-center justify-between px-4">
@@ -85,13 +102,15 @@
                     <p class="text-[8px] text-green-700">Trạng thái: <span class="text-red-500 blink">PHÁT HIỆN LỖI PHÂN ĐOẠN DỮ LIỆU</span></p>
                 </div>
             </div>
-            <div class="text-right flex space-x-6 items-center">
+            <div class="text-right flex space-x-4 items-center">
                 <div class="text-[10px]">
-                    <span class="text-gray-500">HẾT HẠN PHIÊN:</span>
+                    <span class="text-gray-500 uppercase">Hết hạn phiên:</span>
                     <span id="session-timer" class="text-white font-bold text-lg ml-2">30:00</span>
                 </div>
-                <div class="h-8 w-[1px] bg-green-900"></div>
-                <button onclick="triggerGovAlert('Thay đổi cấu hình tổng đài')" class="text-[10px] bg-red-900/20 border border-red-700 px-3 py-1 hover:bg-red-700 hover:text-white">THIẾT LẬP LẠI</button>
+                <div class="h-8 w-[1px] bg-green-900 mx-2"></div>
+                <button onclick="handleLogout()" class="text-[10px] bg-red-900/40 border border-red-600 px-3 py-1 hover:bg-red-600 text-white font-bold transition flex items-center gap-2">
+                    <i class="fas fa-power-off"></i> THIẾT LẬP LẠI
+                </button>
             </div>
         </header>
 
@@ -100,8 +119,7 @@
             <div class="w-[30%] flex flex-col space-y-1">
                 <div class="flex-1 cyber-border p-2 flex flex-col overflow-hidden">
                     <h3 class="text-[10px] font-bold text-green-600 border-b border-green-950 pb-1 mb-2">NHẬT KÝ LỖI SERVER</h3>
-                    <div id="log-box" class="flex-1 overflow-y-auto text-[10px] space-y-1 font-mono">
-                        </div>
+                    <div id="log-box" class="flex-1 overflow-y-auto text-[10px] space-y-1 font-mono"></div>
                 </div>
 
                 <div class="h-40 cyber-border bg-black flex flex-col">
@@ -171,17 +189,35 @@
     </div>
 
     <script>
-        // --- XỬ LÝ ĐĂNG NHẬP ---
+        // --- QUẢN LÝ PHIÊN ---
+        let startTime = null;
+        let totalLogs = 0;
+
         function handleLogin() {
             const pass = document.getElementById('login-pass').value;
             const err = document.getElementById('login-err');
-            if(pass === "123456" || pass.length > 3) { // Giả lập pass
+            if(pass.length > 3) {
                 document.getElementById('login-layer').style.display = 'none';
                 document.getElementById('main-dashboard').classList.remove('hidden');
+                startTime = new Date();
                 initSystem();
             } else {
                 err.innerText = "MẬT MÃ KHÔNG CHÍNH XÁC. TRUY CẬP BỊ TỪ CHỐI.";
             }
+        }
+
+        function handleLogout() {
+            const endTime = new Date();
+            const duration = Math.floor((endTime - startTime) / 1000);
+            
+            // Điền thông tin vào Exit Screen
+            document.getElementById('exit-time').innerText = endTime.toLocaleTimeString();
+            document.getElementById('access-duration').innerText = duration + " Giây";
+            document.getElementById('log-count').innerText = totalLogs;
+            
+            // Hiển thị màn hình Exit
+            document.getElementById('main-dashboard').classList.add('hidden');
+            document.getElementById('exit-layer').classList.remove('hidden');
         }
 
         // --- CÁC HÀM HỆ THỐNG ---
@@ -190,6 +226,7 @@
         const cliInput = document.getElementById('cli-input');
 
         function addLog(msg, type='error') {
+            totalLogs++;
             const time = new Date().toLocaleTimeString();
             const color = type === 'error' ? 'text-red-500' : 'text-green-500';
             const div = document.createElement('div');
@@ -202,26 +239,27 @@
         function initSystem() {
             addLog("KHỞI ĐỘNG NHÂN KẾT NỐI: 14.226.55.184", 'info');
             addLog("KIỂM TRA CỤM SERVER CAMERA... THẤT BẠI.");
-            addLog("LỖI: 0x0004FC - Image Segment Corruption tại Lạch Tray.");
-            addLog("CẢNH BÁO: Luồng Metadata vẫn hoạt động, video bị ngắt.");
+            addLog("LỖI: 0x0004FC - Image Segment Corruption.");
             
-            // Đếm ngược 30 phút
             let time = 1800;
-            setInterval(() => {
+            const timerInterval = setInterval(() => {
                 time--;
+                if(time < 0) {
+                    clearInterval(timerInterval);
+                    handleLogout();
+                    return;
+                }
                 const m = Math.floor(time / 60).toString().padStart(2, '0');
                 const s = (time % 60).toString().padStart(2, '0');
                 document.getElementById('session-timer').innerText = `${m}:${s}`;
             }, 1000);
 
-            // Ping realtime
             setInterval(() => {
                 const p = Math.floor(Math.random() * 20) + 5;
                 document.getElementById('live-ping').innerText = `PING: ${p}ms`;
             }, 2000);
         }
 
-        // --- TERMINAL PING LOGIC ---
         cliInput.addEventListener('keydown', (e) => {
             if(e.key === 'Enter') {
                 const val = cliInput.value.trim();
@@ -240,21 +278,19 @@
                         }, (i+1) * 500);
                     }
                 } else {
-                    // Chế độ gõ bừa vẫn ra code ngầu
                     setTimeout(() => {
                         const p = document.createElement('div');
                         p.className = "text-yellow-500";
                         p.innerText = ">> Executing security bypass... [SUCCESS]";
                         termScreen.appendChild(p);
                         addLog(`Lệnh can thiệp: ${val}`, 'info');
-                    }, 4000);
+                    }, 1000);
                 }
                 cliInput.value = '';
                 termScreen.scrollTop = termScreen.scrollHeight;
             }
         });
 
-        // --- CẢNH BÁO ---
         function triggerGovAlert(action) {
             document.getElementById('alert-action').innerText = action;
             document.getElementById('gov-modal').classList.remove('hidden');
