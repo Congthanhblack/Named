@@ -15,15 +15,14 @@
         ::-webkit-scrollbar-track { background: #09090b; }
         ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 2px; }
         .camera-grid-layout { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; grid-template-rows: repeat(3, 1fr) !important; gap: 8px; }
-        .cam-slot { position: relative; background: #000; border: 1px solid #18181b; aspect-ratio: 16 / 9; overflow: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .cam-slot:hover { border-color: #3b82f6; z-index: 10; box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); }
-        /* Sửa font cho bảng thông báo */
+        .cam-slot { position: relative; background: #050505; border: 1px solid #18181b; aspect-ratio: 16 / 9; overflow: hidden; }
+        /* Hiệu ứng mất kết nối camera */
+        .cam-error-overlay { background: linear-gradient(rgba(20, 0, 0, 0.9) 50%, rgba(0, 0, 0, 1) 50%); background-size: 100% 4px; animation: scanline 0.2s linear infinite; }
+        @keyframes scanline { 0% { background-position: 0 0; } 100% { background-position: 0 4px; } }
+        
         .gov-paper { background: #fff; color: #000; font-family: 'Noto Serif', serif; max-width: 800px; width: 95%; padding: 40px; border: 1px solid #000; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8); position: relative; }
-        .blink { animation: blinker 2s step-start infinite; }
-        @keyframes blinker { 50% { opacity: 0; } }
-        .tab-btn { background: #18181b; border: 1px solid #27272a; color: #a1a1aa; transition: all 0.2s; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; }
+        .tab-btn { background: #18181b; border: 1px solid #27272a; color: #a1a1aa; transition: all 0.2s; font-size: 11px; font-weight: 600; }
         .tab-btn.active { background: #1e40af; color: #fff; border-color: #3b82f6; }
-        .no-signal-overlay { background: linear-gradient(rgba(10, 10, 10, 0.8) 50%, rgba(0, 0, 0, 0.9) 50%); background-size: 100% 4px; }
     </style>
 </head>
 <body class="flex flex-col h-full select-none">
@@ -32,8 +31,7 @@
         <div class="w-[420px] cyber-border p-10 text-center relative rounded-lg border-t-4 border-t-blue-600">
             <div class="flex justify-center mb-6"><div class="p-4 bg-blue-600/10 rounded-full"><i class="fas fa-shield-halved text-5xl text-blue-500"></i></div></div>
             <h2 class="text-xl font-bold tracking-tight mb-1 text-white uppercase">Hệ Thống Điều Hành IOC</h2>
-            <p class="text-[12px] text-slate-500 mb-8 font-medium">XÁC THỰC TRUY CẬP TRUNG TÂM DỮ LIỆU</p>
-            <div class="space-y-4 text-left">
+            <div class="space-y-4 text-left mt-8">
                 <input type="password" id="login-pass" class="w-full bg-[#0a0a0c] border border-slate-800 p-3 text-sm text-white outline-none focus:border-blue-500 rounded mono-text" placeholder="MẬT MÃ XÁC THỰC" onkeypress="if(event.key === 'Enter') handleLogin()">
                 <button onclick="handleLogin()" class="w-full bg-blue-700 hover:bg-blue-600 text-white font-bold py-3 text-xs uppercase transition tracking-widest rounded shadow-lg shadow-blue-900/20">Đăng nhập</button>
             </div>
@@ -49,7 +47,7 @@
                     <h1 class="text-[15px] font-bold text-white uppercase tracking-tight">Trung tâm Giám sát Điều hành Thông minh (IOC)</h1>
                     <div class="flex items-center gap-3 text-[10px] mt-0.5">
                         <span class="text-slate-400 font-semibold uppercase">TP. Hải Phòng</span>
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 blink"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                         <span class="text-emerald-500 font-bold uppercase tracking-wider">ONLINE</span>
                     </div>
                 </div>
@@ -59,14 +57,13 @@
                     <div class="text-[9px] text-slate-500 font-bold uppercase mb-1">SESSION TIMER</div>
                     <div id="session-timer" class="text-2xl font-light mono-text text-blue-400 leading-none">30:00</div>
                 </div>
-                <button onclick="location.reload()" class="bg-red-500/10 border border-red-500/50 text-red-500 px-5 py-2 text-[10px] font-bold uppercase rounded">Đăng xuất</button>
             </div>
         </header>
 
         <div class="flex-1 flex gap-1 overflow-hidden min-h-0">
             <div class="w-[380px] flex flex-col gap-1 shrink-0 h-full">
                 <div class="flex-1 cyber-border flex flex-col overflow-hidden">
-                    <div class="bg-slate-900/50 p-3 border-b border-slate-800 flex justify-between items-center shrink-0">
+                    <div class="bg-slate-900/50 p-3 border-b border-slate-800 shrink-0">
                         <h3 class="text-[11px] font-bold text-slate-300 uppercase italic">Security Access Logs</h3>
                     </div>
                     <div id="log-box" class="flex-1 overflow-y-auto p-3 text-[11px] space-y-2 mono-text text-slate-500"></div>
@@ -103,59 +100,35 @@
                     <p class="font-bold uppercase tracking-wide">Security Access Notification</p>
                     <p class="text-[12px] italic">Controlled Camera Data – IOC System</p>
                 </div>
-
                 <div class="px-5 py-4 leading-relaxed">
                     <p><strong>Camera Identifier:</strong> <span class="mono-text text-red-700 font-bold" id="alert-cam-id"></span></p>
                     <p><strong>Monitoring Point:</strong> <span class="uppercase font-bold" id="alert-cam-name"></span></p>
-                    <p>
-                        <strong>Geographic Location:</strong><br>
-                        <span class="italic" id="alert-address"></span>
-                    </p>
-
+                    <p><strong>Geographic Location:</strong><br><span class="italic" id="alert-address"></span></p>
                     <p class="mt-3">
                         <strong>Access Level:</strong> <span class="font-bold uppercase">RESTRICTED – LEVEL 3</span><br>
                         <strong>Data Type:</strong> Live Video Stream (RTSP)<br>
                         <strong>Legal Basis:</strong> Decree 13/2023/NĐ-CP
                     </p>
-
-                    <p class="mt-3 text-justify">
-                        All access activities are performed by authorized senior operators and
-                        automatically recorded in the central audit log of the IOC system.
-                    </p>
+                    <p class="mt-3 text-justify">Tất cả hoạt động truy cập được thực hiện bởi nhân sự quản lý cấp cao và được ghi lại trên nhật ký hệ thống máy chủ trung tâm.</p>
                 </div>
-
                 <div class="border-t border-black"></div>
-
                 <table class="w-full border-collapse text-[13px]">
                     <tr>
                         <td class="w-1/2 p-4 border-r border-black align-top">
-                            <p class="font-bold uppercase mb-2">Operation Management Unit</p>
-                            <p><strong>Address:</strong><br>
-                            Số 62 Võ Thị Sáu, P. Máy Tơ, Q. Ngô Quyền, TP. Hải Phòng</p>
-                            <p class="mt-1"><strong>Hotline:</strong> 0225.3736.333</p>
-                            <p><strong>Portal:</strong> sothongtin.haiphong.gov.vn</p>
+                            <p class="font-bold uppercase mb-2">Đơn vị quản lý vận hành</p>
+                            <p>Số 62 Võ Thị Sáu, P. Máy Tơ, Q. Ngô Quyền, TP. Hải Phòng</p>
+                            <p class="mt-1">Hotline: 0225.3736.333</p>
                         </td>
-
                         <td class="w-1/2 p-4 align-top">
-                            <p class="font-bold mb-2">Distribution:</p>
-                            <p class="italic">
-                                – Director Board (Report);<br>
-                                – Cyber Security Division – CATP;<br>
-                                – IOC Operation Center;<br>
-                                – System Archive.
-                            </p>
+                            <p class="font-bold mb-2">Nơi nhận:</p>
+                            <p class="italic">- Ban Giám đốc (Báo cáo);<br>- Phòng An ninh mạng - CATP;<br>- Lưu hồ sơ hệ thống.</p>
                         </td>
                     </tr>
                 </table>
-
-                <div class="border-t border-black px-4 py-2 text-[11px] italic text-center bg-gray-50">
-                    This access request is logged automatically and cannot be revoked.
-                </div>
             </div>
-
-            <div class="flex justify-end gap-3 font-sans">
-                <button onclick="closeGovModal()" class="px-6 py-2 border border-slate-300 font-bold text-[11px] uppercase hover:bg-slate-50 transition rounded">Cancel</button>
-                <button onclick="closeGovModal()" class="px-6 py-2 bg-red-700 text-white font-bold text-[11px] uppercase shadow-lg hover:bg-red-800 transition rounded">Confirm Log Entry</button>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeGovModal()" class="px-6 py-2 border border-slate-300 font-bold text-[11px] uppercase rounded">Hủy lệnh</button>
+                <button onclick="closeGovModal()" class="px-6 py-2 bg-red-700 text-white font-bold text-[11px] uppercase rounded">Xác nhận ghi log</button>
             </div>
         </div>
     </div>
@@ -177,6 +150,18 @@
             { id: "CAM-HP-012", name: "KDL ĐỒ SƠN", addr: "Khu 2, Vạn Hương, Q. Đồ Sơn, Hải Phòng", cat: "PORT" }
         ];
 
+        // Dữ liệu thật cho vi phạm
+        const carTypes = ["Toyota Vios", "Honda City", "Mazda 3", "Hyundai Accent", "Kia Cerato", "Ford Ranger", "VinFast Lux A2.0"];
+        const violations = ["Vượt đèn đỏ", "Chạy quá tốc độ", "Sai làn đường", "Không thắt dây an toàn", "Đi ngược chiều"];
+        const platePrefix = ["15A", "15B", "15C", "15D"];
+
+        function generatePlate() {
+            const prefix = platePrefix[Math.floor(Math.random() * platePrefix.length)];
+            const num = Math.floor(10000 + Math.random() * 90000);
+            return `${prefix}-${num}`;
+        }
+
+        // Tạo lưới camera bị lỗi kết nối
         function createCameraGrid() {
             const grid = document.getElementById('camera-grid');
             grid.innerHTML = '';
@@ -184,51 +169,49 @@
             for (let i = 0; i < 12; i++) {
                 const cam = filtered[i];
                 const div = document.createElement('div');
-                div.className = "cam-slot group cursor-pointer";
+                div.className = "cam-slot cam-error-overlay group cursor-pointer flex flex-col items-center justify-center";
                 if (cam) {
                     div.onclick = () => triggerGovAlert(cam);
                     div.innerHTML = `
-                        <div class="absolute top-2 left-2 z-10 flex flex-col gap-1">
-                            <span class="bg-emerald-600 text-white text-[8px] px-1.5 py-0.5 font-bold flex items-center gap-1 w-max rounded-sm">
-                                <span class="w-1 h-1 bg-white rounded-full blink"></span> LIVE
-                            </span>
-                            <span class="text-[10px] text-white font-bold tracking-wide">${cam.name}</span>
-                        </div>
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition bg-blue-600/10">
-                            <i class="fas fa-expand text-2xl text-blue-400"></i>
-                        </div>
-                        <div class="absolute bottom-2 left-2 text-[8px] text-slate-600 mono-text">${cam.id}</div>
+                        <div class="absolute top-1 left-2 z-10 text-[9px] text-white font-bold opacity-50">${cam.id} | ${cam.name}</div>
+                        <i class="fas fa-video-slash text-red-900/40 text-3xl mb-1"></i>
+                        <span class="text-[9px] text-red-600 font-bold tracking-widest uppercase">Lost Connection</span>
+                        <div class="absolute bottom-1 right-2 text-[8px] text-slate-800 mono-text">0x80041003_INTERNAL_ERR</div>
                     `;
                 } else {
-                    div.className = "cam-slot no-signal-overlay flex items-center justify-center border-dashed border-slate-800";
-                    div.innerHTML = `<span class="text-[9px] font-bold text-slate-700">NO DATA</span>`;
+                    div.innerHTML = `<span class="text-[9px] font-bold text-slate-900">NO SIGNAL</span>`;
                 }
                 grid.appendChild(div);
             }
         }
 
-        // GIẢ LẬP QUÁ TRÌNH CODE THẬT
+        // Giả lập quá trình vi phạm sau 15-20s
+        function startViolationStream() {
+            const delay = Math.floor(Math.random() * (20000 - 15000 + 1) + 15000);
+            setTimeout(() => {
+                const cam = cameraData[Math.floor(Math.random() * cameraData.length)];
+                const plate = generatePlate();
+                const car = carTypes[Math.floor(Math.random() * carTypes.length)];
+                const vio = violations[Math.floor(Math.random() * violations.length)];
+                
+                const logMsg = `<span class="text-yellow-500 font-bold">[VIOLATION]</span> BKS: ${plate} | Xe: ${car} | Lỗi: ${vio} | Vị trí: ${cam.name}`;
+                addLog(logMsg, 'info');
+                
+                startViolationStream(); // Lặp lại
+            }, delay);
+        }
+
         async function executeCommand(val) {
             if (!val.trim()) return;
             const screen = document.getElementById('terminal-screen');
-            const input = document.getElementById('cli-input');
-            input.value = '';
-            
-            const lines = [
-                `> Executing: ${val}`,
-                `> Searching repository...`,
-                `> Fetching data from HPH-Internal-DB...`,
-                `> Applying security protocols...`,
-                `> Status: [${val.toUpperCase()}] Command processed successfully.`
-            ];
-
+            document.getElementById('cli-input').value = '';
+            const lines = [`> Executing: ${val}`, `> Searching repository...`, `> Applying security protocols...`, `> Status: [${val.toUpperCase()}] Processed.`];
             for (let line of lines) {
                 const div = document.createElement('div');
-                div.className = "mt-1";
                 div.innerText = line;
                 screen.appendChild(div);
                 screen.scrollTop = screen.scrollHeight;
-                await new Promise(r => setTimeout(r, 400)); // Delay tạo cảm giác code chạy
+                await new Promise(r => setTimeout(r, 400));
             }
             addLog(`CLI: Executed command [${val}]`, 'info');
         }
@@ -238,7 +221,7 @@
             document.getElementById('alert-cam-name').innerText = cam.name;
             document.getElementById('alert-address').innerText = cam.addr;
             document.getElementById('gov-modal').classList.remove('hidden');
-            addLog(`RESTRICTED ACCESS: Unauthorized RTSP request for ${cam.id}`, 'error');
+            addLog(`RESTRICTED ACCESS: Unauthorized request for ${cam.id}`, 'error');
         }
 
         function switchTab(cat, btn) {
@@ -253,25 +236,22 @@
             const box = document.getElementById('log-box');
             const div = document.createElement('div');
             const time = new Date().toLocaleTimeString('vi-VN', {hour12: false});
-            div.innerHTML = `<span class="text-slate-600 shrink-0">[${time}]</span> <span class="${type==='error'?'text-red-400':'text-slate-400'}">> ${msg}</span>`;
+            div.innerHTML = `<span class="text-slate-600">[${time}]</span> <span class="${type==='error'?'text-red-400':'text-slate-400'}">> ${msg}</span>`;
             box.prepend(div);
         }
 
         function handleLogin() {
-            const passInput = document.getElementById('login-pass');
-            if(passInput.value.trim().length > 0) {
+            if(document.getElementById('login-pass').value.trim().length > 0) {
                 document.getElementById('login-layer').classList.add('hidden');
                 document.getElementById('main-dashboard').classList.remove('hidden');
                 createCameraGrid();
+                startViolationStream();
                 setInterval(() => {
                     const timer = document.getElementById('session-timer');
                     let [m, s] = timer.innerText.split(':').map(Number);
                     if(s === 0) { if(m>0) {m--; s=59;} } else { s--; }
                     timer.innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
                 }, 1000);
-                addLog("User authenticated. Session started.", "info");
-            } else {
-                document.getElementById('login-err').innerText = "Vui lòng nhập mã truy cập.";
             }
         }
 
