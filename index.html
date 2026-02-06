@@ -11,15 +11,33 @@
         body { background-color: #09090b; color: #e2e8f0; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; width: 100vw; }
         .cyber-border { border: 1px solid #27272a; background: rgba(12, 12, 15, 0.9); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
         .mono-text { font-family: 'JetBrains Mono', monospace; }
-        ::-webkit-scrollbar { width: 4px; }
+        
+        /* CẤU HÌNH THANH CUỘN CHUYÊN NGHIỆP */
+        ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #09090b; }
-        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+
+        .login-bg {
+            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+            position: relative;
+        }
+        .login-bg::before {
+            content: ""; position: absolute; inset: 0;
+            background-image: linear-gradient(rgba(18, 24, 38, 0.1) 2px, transparent 2px), linear-gradient(90deg, rgba(18, 24, 38, 0.1) 2px, transparent 2px);
+            background-size: 40px 40px;
+        }
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.2), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite;
+        }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        
         .camera-grid-layout { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; grid-template-rows: repeat(3, 1fr) !important; gap: 8px; }
         .cam-slot { position: relative; background: #050505; border: 1px solid #18181b; aspect-ratio: 16 / 9; overflow: hidden; }
-        /* Hiệu ứng mất kết nối camera */
         .cam-error-overlay { background: linear-gradient(rgba(20, 0, 0, 0.9) 50%, rgba(0, 0, 0, 1) 50%); background-size: 100% 4px; animation: scanline 0.2s linear infinite; }
         @keyframes scanline { 0% { background-position: 0 0; } 100% { background-position: 0 4px; } }
-        
         .gov-paper { background: #fff; color: #000; font-family: 'Noto Serif', serif; max-width: 800px; width: 95%; padding: 40px; border: 1px solid #000; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8); position: relative; }
         .tab-btn { background: #18181b; border: 1px solid #27272a; color: #a1a1aa; transition: all 0.2s; font-size: 11px; font-weight: 600; }
         .tab-btn.active { background: #1e40af; color: #fff; border-color: #3b82f6; }
@@ -27,15 +45,43 @@
 </head>
 <body class="flex flex-col h-full select-none">
 
-    <div id="login-layer" class="fixed inset-0 z-[600] flex items-center justify-center bg-[#020617]">
-        <div class="w-[420px] cyber-border p-10 text-center relative rounded-lg border-t-4 border-t-blue-600">
-            <div class="flex justify-center mb-6"><div class="p-4 bg-blue-600/10 rounded-full"><i class="fas fa-shield-halved text-5xl text-blue-500"></i></div></div>
-            <h2 class="text-xl font-bold tracking-tight mb-1 text-white uppercase">Hệ Thống Điều Hành IOC</h2>
-            <div class="space-y-4 text-left mt-8">
-                <input type="password" id="login-pass" class="w-full bg-[#0a0a0c] border border-slate-800 p-3 text-sm text-white outline-none focus:border-blue-500 rounded mono-text" placeholder="MẬT MÃ XÁC THỰC" onkeypress="if(event.key === 'Enter') handleLogin()">
-                <button onclick="handleLogin()" class="w-full bg-blue-700 hover:bg-blue-600 text-white font-bold py-3 text-xs uppercase transition tracking-widest rounded shadow-lg shadow-blue-900/20">Đăng nhập</button>
+    <div id="login-layer" class="fixed inset-0 z-[600] flex items-center justify-center login-bg">
+        <div class="relative w-[480px] space-y-6">
+            <div class="flex flex-col items-center mb-8">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/af/Vietnam_Coat_of_Arms.svg" class="h-20 mb-4 drop-shadow-[0_0_15px_rgba(239,68,68,0.3)]">
+                <h1 class="text-white text-lg font-bold tracking-[0.2em] uppercase text-center">Hệ Thống Thông Tin Điều Hành IOC</h1>
+                <p class="text-blue-400 text-[10px] tracking-[0.3em] font-medium uppercase mt-2">Cổng xác thực tập trung - Thành phố Hải Phòng</p>
             </div>
-            <p id="login-err" class="mt-4 text-[11px] text-red-400 font-medium h-4"></p>
+            <div class="cyber-border p-8 rounded-none border-t-2 border-t-blue-500 relative bg-[#0f172a]/95 backdrop-blur-xl">
+                <div class="absolute top-0 left-0 w-full h-[2px] bg-blue-500/50 shimmer"></div>
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-[10px] text-slate-500 font-bold uppercase mb-2 tracking-widest">Mã định danh vận hành</label>
+                        <div class="relative">
+                            <i class="fas fa-user-shield absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 text-sm"></i>
+                            <input type="text" value="ADMIN_IOC_HPH" disabled class="w-full bg-black/50 border border-slate-800 p-3 pl-10 text-xs text-slate-400 outline-none mono-text rounded">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-500 font-bold uppercase mb-2 tracking-widest">Khóa bảo mật (Security Key)</label>
+                        <div class="relative">
+                            <i class="fas fa-key absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 text-sm"></i>
+                            <input type="password" id="login-pass" class="w-full bg-black border border-slate-700 p-3 pl-10 text-sm text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-all rounded mono-text" placeholder="••••••••••••" onkeypress="if(event.key === 'Enter') handleLogin()">
+                        </div>
+                    </div>
+                    <button onclick="handleLogin()" class="group relative w-full overflow-hidden bg-blue-700 hover:bg-blue-600 text-white font-bold py-4 text-[11px] uppercase transition-all tracking-[0.2em] rounded border border-blue-400/30">
+                        <span class="relative z-10 flex items-center justify-center gap-2">
+                            <i class="fas fa-fingerprint text-lg"></i> Xác thực truy cập
+                        </span>
+                        <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                    </button>
+                </div>
+                <div class="mt-8 pt-6 border-t border-slate-800/50 flex flex-col items-center gap-3 text-center">
+                    <p id="login-err" class="text-[10px] text-red-500 font-medium h-4 uppercase tracking-tighter"></p>
+                    <p class="text-[9px] text-slate-600 leading-relaxed font-medium uppercase">CẢNH BÁO: Mọi hành vi truy cập trái phép sẽ bị ghi lại IP và báo cáo cơ quan chức năng.</p>
+                </div>
+            </div>
+            <p class="text-center text-slate-700 text-[10px] font-bold uppercase tracking-widest">© 2026 IOC HAI PHONG - Ver 4.0.5</p>
         </div>
     </div>
 
@@ -53,6 +99,10 @@
                 </div>
             </div>
             <div class="flex items-center gap-8 text-right">
+                <div class="border-r border-slate-800 pr-8">
+                    <div id="system-date" class="text-[10px] text-slate-500 font-bold uppercase">--/--/----</div>
+                    <div id="system-clock" class="text-2xl font-light mono-text text-white leading-none">00:00:00</div>
+                </div>
                 <div>
                     <div class="text-[9px] text-slate-500 font-bold uppercase mb-1">SESSION TIMER</div>
                     <div id="session-timer" class="text-2xl font-light mono-text text-blue-400 leading-none">30:00</div>
@@ -62,11 +112,13 @@
 
         <div class="flex-1 flex gap-1 overflow-hidden min-h-0">
             <div class="w-[380px] flex flex-col gap-1 shrink-0 h-full">
-                <div class="flex-1 cyber-border flex flex-col overflow-hidden">
-                    <div class="bg-slate-900/50 p-3 border-b border-slate-800 shrink-0">
+                <div class="flex-1 cyber-border flex flex-col overflow-hidden bg-[#0a0a0c]">
+                    <div class="bg-slate-900/50 p-3 border-b border-slate-800 flex justify-between items-center shrink-0">
                         <h3 class="text-[11px] font-bold text-slate-300 uppercase italic">Security Access Logs</h3>
+                        <span class="text-[9px] text-blue-500 mono-text">AUTO_SCROLL: ON</span>
                     </div>
-                    <div id="log-box" class="flex-1 overflow-y-auto p-3 text-[11px] space-y-2 mono-text text-slate-500"></div>
+                    <div id="log-box" class="flex-1 overflow-y-auto p-3 text-[11px] space-y-2 mono-text text-slate-500 scroll-smooth">
+                        </div>
                 </div>
                 <div class="h-[200px] cyber-border flex flex-col bg-[#050507]">
                     <div id="terminal-screen" class="flex-1 p-3 text-[11px] mono-text text-emerald-600/80 overflow-y-auto leading-relaxed">
@@ -86,7 +138,7 @@
                     <button class="tab-btn flex-1 h-full rounded-sm" onclick="switchTab('SUBURB', this)">HUYỆN NGOẠI THÀNH</button>
                     <button class="tab-btn flex-1 h-full rounded-sm" onclick="switchTab('PORT', this)">CẢNG - KCN</button>
                 </div>
-                <div class="flex-1 cyber-border bg-black p-2 overflow-hidden">
+                <div class="flex-1 cyber-border bg-black p-2 overflow-hidden relative">
                     <div id="camera-grid" class="camera-grid-layout h-full"></div>
                 </div>
             </div>
@@ -96,35 +148,13 @@
     <div id="gov-modal" class="fixed inset-0 z-[1000] hidden flex items-center justify-center bg-black/90 backdrop-blur-sm">
         <div class="gov-paper">
             <div class="border border-black text-[14px] mb-6">
-                <div class="border-b border-black px-4 py-3 text-center">
-                    <p class="font-bold uppercase tracking-wide">Security Access Notification</p>
-                    <p class="text-[12px] italic">Controlled Camera Data – IOC System</p>
-                </div>
+                <div class="border-b border-black px-4 py-3 text-center font-bold uppercase">Security Access Notification</div>
                 <div class="px-5 py-4 leading-relaxed">
                     <p><strong>Camera Identifier:</strong> <span class="mono-text text-red-700 font-bold" id="alert-cam-id"></span></p>
                     <p><strong>Monitoring Point:</strong> <span class="uppercase font-bold" id="alert-cam-name"></span></p>
                     <p><strong>Geographic Location:</strong><br><span class="italic" id="alert-address"></span></p>
-                    <p class="mt-3">
-                        <strong>Access Level:</strong> <span class="font-bold uppercase">RESTRICTED – LEVEL 3</span><br>
-                        <strong>Data Type:</strong> Live Video Stream (RTSP)<br>
-                        <strong>Legal Basis:</strong> Decree 13/2023/NĐ-CP
-                    </p>
-                    <p class="mt-3 text-justify">Tất cả hoạt động truy cập được thực hiện bởi nhân sự quản lý cấp cao và được ghi lại trên nhật ký hệ thống máy chủ trung tâm.</p>
+                    <p class="mt-3 text-justify italic">Cảnh báo: Dữ liệu hình ảnh tạm thời ngắt kết nối. Hệ thống chỉ ghi nhận dữ liệu số từ cảm biến AI.</p>
                 </div>
-                <div class="border-t border-black"></div>
-                <table class="w-full border-collapse text-[13px]">
-                    <tr>
-                        <td class="w-1/2 p-4 border-r border-black align-top">
-                            <p class="font-bold uppercase mb-2">Đơn vị quản lý vận hành</p>
-                            <p>Số 62 Võ Thị Sáu, P. Máy Tơ, Q. Ngô Quyền, TP. Hải Phòng</p>
-                            <p class="mt-1">Hotline: 0225.3736.333</p>
-                        </td>
-                        <td class="w-1/2 p-4 align-top">
-                            <p class="font-bold mb-2">Nơi nhận:</p>
-                            <p class="italic">- Ban Giám đốc (Báo cáo);<br>- Phòng An ninh mạng - CATP;<br>- Lưu hồ sơ hệ thống.</p>
-                        </td>
-                    </tr>
-                </table>
             </div>
             <div class="flex justify-end gap-3">
                 <button onclick="closeGovModal()" class="px-6 py-2 border border-slate-300 font-bold text-[11px] uppercase rounded">Hủy lệnh</button>
@@ -150,18 +180,23 @@
             { id: "CAM-HP-012", name: "KDL ĐỒ SƠN", addr: "Khu 2, Vạn Hương, Q. Đồ Sơn, Hải Phòng", cat: "PORT" }
         ];
 
-        // Dữ liệu thật cho vi phạm
-        const carTypes = ["Toyota Vios", "Honda City", "Mazda 3", "Hyundai Accent", "Kia Cerato", "Ford Ranger", "VinFast Lux A2.0"];
+        const vehicleTypes = ["Ô tô", "Xe máy"];
+        const colors = ["Trắng", "Đen", "Đỏ", "Xanh", "Xám", "Bạc"];
         const violations = ["Vượt đèn đỏ", "Chạy quá tốc độ", "Sai làn đường", "Không thắt dây an toàn", "Đi ngược chiều"];
-        const platePrefix = ["15A", "15B", "15C", "15D"];
+        const platePrefix = ["15A", "15B", "15C", "15D", "15H", "15K"];
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('system-clock').innerText = now.toLocaleTimeString('vi-VN', { hour12: false });
+            document.getElementById('system-date').innerText = now.toLocaleDateString('vi-VN').split('/').join('-');
+        }
 
         function generatePlate() {
             const prefix = platePrefix[Math.floor(Math.random() * platePrefix.length)];
-            const num = Math.floor(10000 + Math.random() * 90000);
+            const num = Math.floor(10000 + Math.random() * 89999);
             return `${prefix}-${num}`;
         }
 
-        // Tạo lưới camera bị lỗi kết nối
         function createCameraGrid() {
             const grid = document.getElementById('camera-grid');
             grid.innerHTML = '';
@@ -172,32 +207,24 @@
                 div.className = "cam-slot cam-error-overlay group cursor-pointer flex flex-col items-center justify-center";
                 if (cam) {
                     div.onclick = () => triggerGovAlert(cam);
-                    div.innerHTML = `
-                        <div class="absolute top-1 left-2 z-10 text-[9px] text-white font-bold opacity-50">${cam.id} | ${cam.name}</div>
-                        <i class="fas fa-video-slash text-red-900/40 text-3xl mb-1"></i>
-                        <span class="text-[9px] text-red-600 font-bold tracking-widest uppercase">Lost Connection</span>
-                        <div class="absolute bottom-1 right-2 text-[8px] text-slate-800 mono-text">0x80041003_INTERNAL_ERR</div>
-                    `;
-                } else {
-                    div.innerHTML = `<span class="text-[9px] font-bold text-slate-900">NO SIGNAL</span>`;
+                    div.innerHTML = `<div class="absolute top-1 left-2 z-10 text-[9px] text-white font-bold opacity-50">${cam.id} | ${cam.name}</div>
+                                     <i class="fas fa-video-slash text-red-900/40 text-3xl"></i>
+                                     <span class="text-[9px] text-red-600 font-bold tracking-widest uppercase">Lost Connection</span>`;
                 }
                 grid.appendChild(div);
             }
         }
 
-        // Giả lập quá trình vi phạm sau 15-20s
         function startViolationStream() {
-            const delay = Math.floor(Math.random() * (20000 - 15000 + 1) + 15000);
+            const delay = Math.floor(Math.random() * (40000 - 30000 + 1) + 30000);
             setTimeout(() => {
                 const cam = cameraData[Math.floor(Math.random() * cameraData.length)];
                 const plate = generatePlate();
-                const car = carTypes[Math.floor(Math.random() * carTypes.length)];
+                const type = vehicleTypes[Math.floor(Math.random() * vehicleTypes.length)];
+                const color = colors[Math.floor(Math.random() * colors.length)];
                 const vio = violations[Math.floor(Math.random() * violations.length)];
-                
-                const logMsg = `<span class="text-yellow-500 font-bold">[VIOLATION]</span> BKS: ${plate} | Xe: ${car} | Lỗi: ${vio} | Vị trí: ${cam.name}`;
-                addLog(logMsg, 'info');
-                
-                startViolationStream(); // Lặp lại
+                addLog(`<span class="text-yellow-500 font-bold">[VIOLATION]</span> BKS: ${plate} | ${type} ${color.toLowerCase()} | Lỗi: ${vio} | ${cam.name}`, 'info');
+                startViolationStream();
             }, delay);
         }
 
@@ -205,7 +232,7 @@
             if (!val.trim()) return;
             const screen = document.getElementById('terminal-screen');
             document.getElementById('cli-input').value = '';
-            const lines = [`> Executing: ${val}`, `> Searching repository...`, `> Applying security protocols...`, `> Status: [${val.toUpperCase()}] Processed.`];
+            const lines = [`> Executing: ${val}`, `> Applying security protocols...`, `> Status: [${val.toUpperCase()}] Processed.`];
             for (let line of lines) {
                 const div = document.createElement('div');
                 div.innerText = line;
@@ -229,15 +256,21 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             createCameraGrid();
-            addLog(`SYSTEM: Switch focus to zone [${cat}]`, 'info');
+            addLog(`SYSTEM: Zone switch [${cat}]`, 'info');
         }
 
+        // SỬA HÀM ADDLOG ĐỂ CUỘN XUỐNG DƯỚI CÙNG (SCROLL TO BOTTOM)
         function addLog(msg, type='info') {
             const box = document.getElementById('log-box');
             const div = document.createElement('div');
             const time = new Date().toLocaleTimeString('vi-VN', {hour12: false});
+            div.className = "border-l-2 border-transparent pl-2 hover:border-blue-500 hover:bg-white/5 transition-all";
             div.innerHTML = `<span class="text-slate-600">[${time}]</span> <span class="${type==='error'?'text-red-400':'text-slate-400'}">> ${msg}</span>`;
-            box.prepend(div);
+            
+            box.appendChild(div); // Thêm vào cuối thay vì prepend
+            
+            // Tự động cuộn xuống dưới cùng để thấy thông báo mới nhất
+            box.scrollTop = box.scrollHeight;
         }
 
         function handleLogin() {
@@ -246,12 +279,17 @@
                 document.getElementById('main-dashboard').classList.remove('hidden');
                 createCameraGrid();
                 startViolationStream();
+                setInterval(updateClock, 1000);
+                updateClock();
                 setInterval(() => {
                     const timer = document.getElementById('session-timer');
                     let [m, s] = timer.innerText.split(':').map(Number);
                     if(s === 0) { if(m>0) {m--; s=59;} } else { s--; }
                     timer.innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
                 }, 1000);
+                addLog("User authenticated. Session started.", "info");
+            } else {
+                document.getElementById('login-err').innerText = "VUI LÒNG NHẬP KHÓA BẢO MẬT.";
             }
         }
 
