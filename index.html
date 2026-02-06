@@ -3,201 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HPH-SOC // QUẢN TRỊ AN NINH GIAO THÔNG</title>
+    <title>HPH-SOC // SMART TRAFFIC MONITORING</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
         body { background-color: #000; color: #00ff41; font-family: 'JetBrains Mono', monospace; overflow: hidden; height: 100vh; }
         .cyber-border { border: 1px solid #004411; background: rgba(0, 5, 0, 0.9); }
-        .glitch-bg {
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 255, 0, 0.06));
-            background-size: 100% 2px, 3px 100%;
-        }
+        .glitch-bg { background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 255, 0, 0.06)); background-size: 100% 2px, 3px 100%; }
         .terminal-input { background: transparent; border: none; outline: none; color: #fff; width: 100%; font-size: 12px; }
-        .paper-alert { background: #fff; color: #000; max-width: 600px; padding: 30px; font-family: 'Times New Roman', serif; border: 5px double #cc0000; box-shadow: 0 0 50px rgba(255,0,0,0.4); }
-        .cam-slot { position: relative; background: #050505; border: 1px solid #111; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; }
+        .cam-slot { position: relative; background: #050505; border: 1px solid #111; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .blink { animation: blinker 1s linear infinite; }
         @keyframes blinker { 50% { opacity: 0; } }
-        #login-layer, #exit-layer { background: radial-gradient(circle, #001100 0%, #000 100%); }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #004411; }
-        .violation-row { border-bottom: 1px solid #002200; padding: 4px 0; font-size: 9px; }
+        .violation-row { border-bottom: 1px solid #002200; padding: 6px 0; font-size: 10px; transition: all 0.3s; }
+        .violation-row:hover { background: rgba(255, 0, 0, 0.1); cursor: pointer; }
+        .server-error-overlay { position: absolute; inset: 0; background: rgba(255, 0, 0, 0.1); display: flex; align-items: center; justify-content: center; flex-direction: column; z-index: 10; }
     </style>
 </head>
 <body class="p-1 flex flex-col space-y-1">
 
-    <div id="login-layer" class="fixed inset-0 z-[100] flex items-center justify-center">
-        <div class="w-[400px] cyber-border p-8 text-center">
-            <i class="fas fa-shield-halved text-5xl mb-6 text-green-600"></i>
-            <h2 class="text-xl font-bold tracking-widest mb-2 uppercase">Hệ Thống Giám Sát SOC</h2>
-            <p class="text-[10px] text-green-800 mb-6 italic">Xác thực dải IP: 14.226.55.184</p>
-            <div class="space-y-4 text-left">
-                <input type="password" id="login-pass" class="w-full bg-black border border-green-700 p-2 text-sm outline-none focus:border-green-400 text-center" placeholder="NHẬP MÃ AN NINH">
-                <button onclick="handleLogin()" class="w-full bg-green-700 hover:bg-green-600 text-black font-bold py-3 text-xs uppercase transition">Khởi động phiên</button>
+    <header class="h-12 cyber-border flex items-center justify-between px-4">
+        <div class="flex items-center space-x-3">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/a/af/Vietnam_Coat_of_Arms.svg" class="h-7">
+            <div>
+                <h1 class="text-xs font-bold text-white uppercase tracking-tighter">IOC HAIPHONG CITY - QUẢN TRỊ HỆ THỐNG</h1>
+                <p class="text-[8px] text-green-700">Trạng thái: <span id="system-status" class="text-red-500 blink font-bold">LỖI PHÂN ĐOẠN SERVER CỤM (NODE_02)</span></p>
             </div>
-            <p id="login-err" class="mt-4 text-[10px] text-red-500 font-bold"></p>
         </div>
-    </div>
-
-    <div id="exit-layer" class="fixed inset-0 z-[150] hidden flex items-center justify-center">
-        <div class="w-[450px] border-2 border-red-600 bg-black p-10 text-center font-mono">
-            <i class="fas fa-power-off text-4xl text-red-600 mb-4"></i>
-            <h2 class="text-lg text-white font-bold mb-6">PHIÊN TRUY CẬP ĐÃ KẾT THÚC</h2>
-            <div id="exit-details" class="text-left text-xs space-y-2 border-y border-red-900/50 py-4 mb-6">
-                <div class="flex justify-between"><span>ĐỊA CHỈ IP:</span> <span class="text-white">14.226.55.184</span></div>
-                <div class="flex justify-between"><span>LƯỢT TRUY CẬP:</span> <span class="text-white">SUCCESSFUL</span></div>
-            </div>
-            <button onclick="location.reload()" class="px-8 py-2 border border-green-600 text-green-600 uppercase text-xs font-bold">Xác nhận đóng phiên</button>
+        <div class="flex items-center space-x-4">
+            <span id="session-timer" class="text-white font-bold text-lg">30:00</span>
+            <button onclick="location.reload()" class="bg-red-900/40 border border-red-600 px-3 py-1 text-[10px] text-white font-bold uppercase">Thiết lập lại</button>
         </div>
-    </div>
+    </header>
 
-    <div id="main-dashboard" class="hidden flex flex-col h-full space-y-1">
-        <header class="h-12 cyber-border flex items-center justify-between px-4">
-            <div class="flex items-center space-x-4">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/a/af/Vietnam_Coat_of_Arms.svg" class="h-8">
-                <div>
-                    <h1 class="text-xs font-bold text-white uppercase tracking-tighter">TRUNG TÂM GIÁM SÁT GIAO THÔNG THÔNG MINH - QUYỀN TRUY CẬP L5</h1>
-                    <p class="text-[8px] text-green-700">SERVER: <span class="text-red-500 blink uppercase font-bold">LỖI XUẤT HÌNH (DECODER ERROR) - AI ENGINE: ACTIVE</span></p>
-                </div>
-            </div>
-            <button onclick="handleLogout()" class="text-[10px] bg-red-900/40 border border-red-600 px-3 py-1 hover:bg-red-600 text-white font-bold transition">THIẾT LẬP LẠI</button>
-        </header>
-
-        <div class="flex-1 flex space-x-1 overflow-hidden">
-            <div class="w-[30%] flex flex-col space-y-1">
-                <div class="h-1/2 cyber-border p-2 flex flex-col overflow-hidden">
-                    <h3 class="text-[10px] font-bold text-green-600 border-b border-green-950 pb-1 mb-2 uppercase">Nhật ký AI & Hệ thống</h3>
-                    <div id="log-box" class="flex-1 overflow-y-auto text-[10px] space-y-1 font-mono"></div>
-                </div>
-
-                <div class="h-1/2 cyber-border p-2 flex flex-col overflow-hidden">
-                    <h3 class="text-[10px] font-bold text-yellow-600 border-b border-yellow-950 pb-1 mb-2 uppercase">Danh sách vi phạm thực tế (Real-time)</h3>
-                    <div id="violation-box" class="flex-1 overflow-y-auto font-mono">
-                        </div>
+    <div class="flex-1 flex space-x-1 overflow-hidden">
+        
+        <div class="w-[32%] flex flex-col space-y-1">
+            <div class="flex-1 cyber-border p-2 flex flex-col overflow-hidden">
+                <h3 class="text-[10px] font-bold text-green-600 border-b border-green-950 pb-1 mb-2 uppercase italic">Nhật ký AI & Hạ tầng Server</h3>
+                <div id="log-box" class="flex-1 overflow-y-auto text-[10px] space-y-1 font-mono">
                 </div>
             </div>
 
-            <div class="flex-1 cyber-border grid grid-cols-3 grid-rows-3 gap-1 p-1 bg-black overflow-hidden">
-                <script>
-                    const camNames = ["CẦU BÍNH", "LẠCH TRAY", "ĐÌNH VŨ", "TÔ HIỆU", "HỒNG BÀNG", "QUÁN TOAN", "ĐỒ SƠN", "THỦY NGUYÊN", "CẦU RÀO 2"];
-                    for(let i=0; i<9; i++) {
-                        document.write(`
-                            <div class="cam-slot glitch-bg group cursor-wait" onclick="triggerGovAlert('Kiểm tra dữ liệu AI tại ${camNames[i]}')">
-                                <div class="absolute inset-0 flex flex-col items-center justify-center z-10 opacity-30">
-                                    <i class="fas fa-video-slash text-zinc-600 text-3xl mb-2"></i>
-                                    <span class="text-[8px] text-zinc-500">STREAMS ERROR: 0x00${i}</span>
-                                </div>
-                                <div class="absolute top-1 left-1 bg-black/80 px-2 py-0.5 text-[8px] border-l border-red-600 text-red-500 font-bold">
-                                    CAM_${(i+1).toString().padStart(2,'0')} | ${camNames[i]}
-                                </div>
-                                <div class="absolute bottom-1 right-2 text-[8px] text-green-900 font-mono">DECODING...</div>
-                            </div>
-                        `);
-                    }
-                </script>
+            <div class="h-[45%] cyber-border p-2 flex flex-col overflow-hidden">
+                <h3 class="text-[10px] font-bold text-yellow-600 border-b border-yellow-950 pb-1 mb-2 uppercase">Vi phạm ghi nhận (Unique Plates)</h3>
+                <div id="violation-box" class="flex-1 overflow-y-auto font-mono">
+                </div>
             </div>
         </div>
 
-        <div class="h-32 cyber-border bg-black flex flex-col">
-            <div class="bg-zinc-900 px-2 py-1 text-[9px] flex justify-between text-gray-500 border-b border-green-900">
-                <span>HPH_CORE_TERMINAL v5.0</span>
-                <span id="session-timer" class="text-white font-bold">30:00</span>
+        <div id="camera-grid" class="flex-1 cyber-border grid grid-cols-3 grid-rows-3 gap-1 p-1 bg-black overflow-hidden">
             </div>
-            <div id="terminal-screen" class="flex-1 p-2 text-[11px] overflow-y-auto font-mono text-gray-400"></div>
-            <div class="p-2 border-t border-green-900 flex">
-                <span class="text-green-500 mr-2 font-bold">> admin@hph_security:</span>
-                <input type="text" id="cli-input" class="terminal-input" autocomplete="off" placeholder="Gõ lệnh can thiệp hệ thống...">
-            </div>
+    </div>
+
+    <div class="h-28 cyber-border bg-black flex flex-col">
+        <div class="bg-zinc-900 px-2 py-0.5 text-[9px] flex justify-between text-gray-500 border-b border-green-900">
+            <span>HPH_CORE_COMMANDER v4.2 // SHARED_SERVER_OS</span>
+            <span id="live-ping">PING: 14ms</span>
+        </div>
+        <div id="terminal-screen" class="flex-1 p-2 text-[11px] overflow-y-auto font-mono text-gray-400">
+            <div>[INFO] Hệ thống khởi động thành công. Kết nối Server Node_01: OK, Node_02: TIMEOUT...</div>
+        </div>
+        <div class="p-2 border-t border-green-900 flex items-center">
+            <span class="text-green-500 mr-2 font-bold">admin@ioc_hph:></span>
+            <input type="text" id="cli-input" class="terminal-input" autocomplete="off" placeholder="Nhập lệnh điều khiển...">
         </div>
     </div>
 
-    <div id="violation-modal" class="fixed inset-0 z-[250] hidden flex items-center justify-center bg-black/95">
-        <div class="w-[400px] border-2 border-yellow-600 p-8 text-center bg-zinc-900 shadow-[0_0_30px_rgba(255,255,0,0.2)]">
-            <i class="fas fa-lock text-5xl text-yellow-600 mb-4 animate-bounce"></i>
-            <h3 class="text-yellow-600 font-bold mb-4 uppercase">Truy cập bị từ chối</h3>
-            <p class="text-[11px] text-gray-300 mb-6 leading-relaxed">
-                Để xem chi tiết bằng chứng hình ảnh và thông tin chủ sở hữu của phương tiện này, yêu cầu tài khoản có quyền **QUẢN TRỊ VIÊN CẤP 6 (L6 - SECRET)**.
-            </p>
-            <button onclick="document.getElementById('violation-modal').classList.add('hidden')" class="px-6 py-2 border border-yellow-600 text-yellow-600 hover:bg-yellow-600 hover:text-black font-bold text-xs">QUAY LẠI</button>
-        </div>
-    </div>
-
-    <div id="gov-modal" class="fixed inset-0 z-[200] hidden flex items-center justify-center bg-black/90 backdrop-blur-md">
-        <div class="paper-alert">
-            <div class="flex justify-between border-b-2 border-black pb-2 mb-4">
-                <div class="text-[11px] font-bold uppercase">Sở Thông tin và Truyền thông Hải Phòng</div>
-                <div class="text-[11px] font-bold text-right">MẬT - KHÔNG SAO CHÉP</div>
-            </div>
-            <h2 class="text-lg font-bold text-center text-red-700 mb-4 uppercase">Cảnh báo truy cập dữ liệu lõi</h2>
-            <p class="text-sm mb-6 leading-relaxed">Ghi nhận hành động: <strong id="alert-action" class="text-red-600 uppercase"></strong>. Mọi thao tác đã được log lại và gửi về Server trung tâm.</p>
-            <div class="flex justify-end space-x-4">
-                <button onclick="closeGovModal()" class="px-6 py-2 border border-gray-400 font-bold text-xs uppercase">Hủy lệnh</button>
-                <button onclick="closeGovModal()" class="px-6 py-2 bg-red-700 text-white font-bold text-xs uppercase">Xác nhận</button>
-            </div>
+    <div id="access-modal" class="fixed inset-0 z-[200] hidden flex items-center justify-center bg-black/90 backdrop-blur-sm">
+        <div class="w-[350px] border-2 border-red-600 p-6 text-center bg-black shadow-[0_0_20px_rgba(255,0,0,0.3)]">
+            <i class="fas fa-exclamation-triangle text-4xl text-red-600 mb-4"></i>
+            <h2 class="text-red-600 font-bold mb-2 uppercase">Quyền truy cập bị từ chối</h2>
+            <p class="text-[10px] text-gray-400 mb-6 italic">Yêu cầu xác thực tài khoản QUẢN TRỊ VIÊN CẤP 6 để truy xuất dữ liệu định danh chủ phương tiện.</p>
+            <button onclick="document.getElementById('access-modal').classList.add('hidden')" class="px-6 py-2 bg-red-700 text-white font-bold text-xs">ĐÓNG</button>
         </div>
     </div>
 
     <script>
-        let startTime, logCount = 0;
         const logBox = document.getElementById('log-box');
         const vioBox = document.getElementById('violation-box');
-        
-        const trafficErrors = [
-            "AI_ALERT: Xe 15A-88x.xx sai làn đường tại Nút giao Lạch Tray",
-            "CRITICAL: Mất tín hiệu luồng video tại CAM_04",
-            "AI_ALERT: Xe 16L-42x.xx không xi nhan khi rẽ tại Cầu Bính",
-            "WARNING: Phát hiện người đi bộ đi ngược chiều (Cụm CAM_02)",
-            "AI_ALERT: Xe 15B-01x.xx vượt đèn đỏ (Node Đồ Sơn)",
-            "ERROR: Dữ liệu Frame hình ảnh bị hỏng (0x00FF4)",
-            "AI_ALERT: Xe tải 15C-33x.xx đi vào đường cấm giờ",
-            "SYSTEM: Đang đồng bộ hóa dữ liệu vi phạm với Cục CSGT..."
+        const termScreen = document.getElementById('terminal-screen');
+        const cliInput = document.getElementById('cli-input');
+        const cameraGrid = document.getElementById('camera-grid');
+
+        // Danh sách khu vực mở rộng và phân cụm Server
+        const cameras = [
+            { id: "01", name: "CẦU BÍNH", node: "NODE_01" },
+            { id: "02", name: "LẠCH TRAY", node: "NODE_01" },
+            { id: "03", name: "ĐỒ SƠN - KHU 2", node: "NODE_02" },
+            { id: "04", name: "TÔ HIỆU", node: "NODE_01" },
+            { id: "05", name: "CẦU RÀO 2", node: "NODE_01" },
+            { id: "06", name: "THỦY NGUYÊN", node: "NODE_02" },
+            { id: "07", name: "CÁT BÀ - CẢNG", node: "NODE_02" },
+            { id: "08", name: "LÊ CHÂN", node: "NODE_01" },
+            { id: "09", name: "TIÊN LÃNG", node: "NODE_02" }
         ];
 
-        const licensePlates = ["15A-452.**", "16L-998.**", "15B-211.**", "15C-445.**", "15A-002.**", "16H-778.**"];
-        const violations = ["Không xi nhan", "Sai làn đường", "Vượt đèn đỏ", "Đi ngược chiều", "Dừng đỗ trái phép"];
+        // Biển số và lỗi
+        const platesPool = ["15A-452.12", "16L-998.34", "15B-211.09", "15C-445.67", "15A-002.88", "16H-778.21", "15K-331.45", "15A-888.88", "15B-667.22", "16M-112.33"];
+        const faultTypes = ["KHÔNG XI NHAN", "SAI LÀN ĐƯỜNG", "VƯỢT ĐÈN ĐỎ", "ĐI NGƯỢC CHIỀU", "DỪNG ĐỖ TRÁI PHÉP"];
 
-        function addLog(msg, color="text-red-500") {
-            logCount++;
+        // Quản lý vi phạm: plate -> Set of faults
+        let violationsMap = new Map();
+
+        function initCameras() {
+            cameraGrid.innerHTML = '';
+            cameras.forEach(cam => {
+                const div = document.createElement('div');
+                div.id = `cam-${cam.id}`;
+                div.className = `cam-slot glitch-bg group`;
+                div.innerHTML = `
+                    <div id="error-${cam.id}" class="server-error-overlay hidden">
+                        <i class="fas fa-server text-red-600 text-xl mb-1 opacity-50"></i>
+                        <span class="text-[7px] text-red-500">SERVER ${cam.node} ERROR</span>
+                    </div>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center opacity-20">
+                        <i class="fas fa-video-slash text-2xl mb-1"></i>
+                        <span class="text-[7px]">SIGNAL LOST</span>
+                    </div>
+                    <div class="absolute top-1 left-1 bg-black/80 px-1 text-[8px] text-green-500 border-l border-green-600">
+                        ${cam.name} (${cam.node})
+                    </div>
+                    <div class="absolute bottom-1 right-2 text-[8px] text-green-900">FPS: 0.0</div>
+                `;
+                cameraGrid.appendChild(div);
+            });
+        }
+
+        function addLog(msg, type='info') {
+            const time = new Date().toLocaleTimeString();
+            let color = 'text-green-500';
+            if (type === 'error') color = 'text-red-500';
+            if (type === 'user') color = 'text-blue-400';
+            if (type === 'warn') color = 'text-yellow-500';
+
             const div = document.createElement('div');
             div.className = color;
-            div.innerHTML = `<span class="text-gray-600">[${new Date().toLocaleTimeString()}]</span> > ${msg}`;
+            div.innerHTML = `<span class="text-gray-600">[${time}]</span> > ${msg}`;
             logBox.appendChild(div);
             logBox.scrollTop = logBox.scrollHeight;
         }
 
-        function addViolation() {
-            const plate = licensePlates[Math.floor(Math.random()*licensePlates.length)];
-            const vio = violations[Math.floor(Math.random()*violations.length)];
+        function spawnViolation() {
+            const plate = platesPool[Math.floor(Math.random() * platesPool.length)];
+            const fault = faultTypes[Math.floor(Math.random() * faultTypes.length)];
+
+            if (!violationsMap.has(plate)) {
+                // Tạo mới biển số vi phạm
+                violationsMap.set(plate, new Set([fault]));
+                renderViolationRow(plate, fault);
+                addLog(`AI_DETECT: Phát hiện ${plate} - ${fault.toLowerCase()}`, 'warn');
+            } else {
+                // Biển số đã tồn tại, kiểm tra xem có thêm được lỗi thứ 2 không
+                const existingFaults = violationsMap.get(plate);
+                if (existingFaults.size < 2 && !existingFaults.has(fault)) {
+                    existingFaults.add(fault);
+                    updateViolationRow(plate, Array.from(existingFaults).join(' + '));
+                    addLog(`AI_CRITICAL: ${plate} tái diễn vi phạm: ${fault.toLowerCase()}`, 'error');
+                }
+            }
+        }
+
+        function renderViolationRow(plate, fault) {
             const row = document.createElement('div');
-            row.className = "violation-row flex justify-between cursor-pointer hover:bg-red-900/20";
-            row.onclick = () => document.getElementById('violation-modal').classList.remove('hidden');
-            row.innerHTML = `<span class="text-white font-bold">${plate}</span> <span class="text-red-500 uppercase">${vio}</span>`;
+            row.id = `vio-${plate.replace('.', '')}`;
+            row.className = "violation-row flex justify-between";
+            row.onclick = () => document.getElementById('access-modal').classList.remove('hidden');
+            row.innerHTML = `<span class="text-white font-bold">${plate}</span> <span class="text-red-500 uppercase">${fault}</span>`;
             vioBox.prepend(row);
         }
 
-        function handleLogin() {
-            document.getElementById('login-layer').style.display = 'none';
-            document.getElementById('main-dashboard').classList.remove('hidden');
-            startTime = new Date();
-            initSystem();
+        function updateViolationRow(plate, combinedFaults) {
+            const row = document.getElementById(`vio-${plate.replace('.', '')}`);
+            if (row) {
+                row.innerHTML = `<span class="text-white font-bold">${plate}</span> <span class="text-yellow-500 uppercase">${combinedFaults}</span>`;
+                row.classList.add('bg-red-900/20');
+            }
         }
 
-        function handleLogout() {
-            const end = new Date();
-            document.getElementById('main-dashboard').classList.add('hidden');
-            document.getElementById('exit-layer').classList.remove('hidden');
+        // Mô phỏng lỗi server cục bộ
+        function toggleNodeError(nodeId, isError) {
+            cameras.forEach(cam => {
+                if (cam.node === nodeId) {
+                    const errorOverlay = document.getElementById(`error-${cam.id}`);
+                    isError ? errorOverlay.classList.remove('hidden') : errorOverlay.classList.add('hidden');
+                }
+            });
+            if(isError) {
+                addLog(`CRITICAL: Server chung ${nodeId} mất kết nối cục bộ!`, 'error');
+            } else {
+                addLog(`SYSTEM: ${nodeId} đã được khôi phục.`, 'info');
+            }
         }
 
-        function initSystem() {
-            addLog("KHỞI ĐỘNG NHÂN KẾT NỐI: 14.226.55.184", "text-green-500");
-            addLog("TRUY CẬP VỚI QUYỀN QUẢN TRỊ CẤP CAO (L5)", "text-yellow-500");
+        function init() {
+            initCameras();
+            addLog("ĐANG ĐỒNG BỘ DỮ LIỆU LIÊN NODE...", 'info');
             
+            // Cứ 12-20 giây mới có vi phạm để thực tế
             setInterval(() => {
-                addLog(trafficErrors[Math.floor(Math.random()*trafficErrors.length)]);
-                if(Math.random() > 0.5) addViolation();
-            }, 3000);
+                if (Math.random() > 0.6) spawnViolation();
+            }, 12000);
 
+            // Mô phỏng lỗi NODE_02 (Đồ Sơn, Thủy Nguyên, Tiên Lãng...)
+            setTimeout(() => toggleNodeError('NODE_02', true), 5000);
+
+            // Timer
             let time = 1800;
             setInterval(() => {
                 time--;
@@ -207,25 +220,19 @@
             }, 1000);
         }
 
-        document.getElementById('cli-input').addEventListener('keydown', (e) => {
+        cliInput.addEventListener('keydown', (e) => {
             if(e.key === 'Enter') {
-                const val = e.target.value.trim();
-                if(!val) return;
-                const line = document.createElement('div');
-                line.innerHTML = `<span class="text-green-500">></span> ${val}`;
-                document.getElementById('terminal-screen').appendChild(line);
-                addLog(`[USER_ACTION]: Executing command '${val}'`, "text-blue-400 font-bold");
-                e.target.value = '';
-                document.getElementById('terminal-screen').scrollTop = document.getElementById('terminal-screen').scrollHeight;
+                const cmd = cliInput.value;
+                const div = document.createElement('div');
+                div.innerHTML = `<span class="text-green-500">admin@ioc_hph:></span> ${cmd}`;
+                termScreen.appendChild(div);
+                addLog(`Lệnh điều hành: '${cmd}'`, 'user');
+                cliInput.value = '';
+                termScreen.scrollTop = termScreen.scrollHeight;
             }
         });
 
-        function triggerGovAlert(action) {
-            document.getElementById('alert-action').innerText = action;
-            document.getElementById('gov-modal').classList.remove('hidden');
-        }
-
-        function closeGovModal() { document.getElementById('gov-modal').classList.add('hidden'); }
+        init();
     </script>
 </body>
 </html>
