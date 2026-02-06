@@ -3,139 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SOC | Central Intelligence Access</title>
+    <title>HPH Security Control | Hệ Thống Giám Sát Hải Phòng</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
 
         body {
-            background-color: #05070a;
-            background-image: 
-                radial-gradient(circle at 50% 50%, #1a202c 0%, #05070a 100%),
-                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 100%, 100% 2px, 3px 100%;
-            font-family: 'JetBrains Mono', monospace;
-            height: screen;
+            background-color: #010409;
+            color: #00ff41; /* Màu xanh terminal kinh điển */
+            font-family: 'Space Mono', monospace;
             overflow: hidden;
         }
 
-        /* Hiệu ứng quét dòng radar */
-        .scanline {
-            width: 100%;
-            height: 100px;
-            z-index: 10;
-            background: linear-gradient(0deg, rgba(0, 255, 255, 0) 0%, rgba(0, 255, 255, 0.1) 50%, rgba(0, 255, 255, 0) 100%);
-            opacity: 0.1;
-            position: absolute;
-            bottom: 100%;
-            animation: scan 4s linear infinite;
+        .cyber-panel {
+            background: rgba(1, 4, 9, 0.9);
+            border: 1px solid #004411;
+            position: relative;
         }
 
-        @keyframes scan {
-            0% { bottom: 100%; }
-            100% { bottom: -100px; }
+        .glitch-text { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        .map-grid {
+            background-image: radial-gradient(#004411 1px, transparent 1px);
+            background-size: 20px 20px;
         }
 
-        .cyber-card {
-            background: rgba(13, 17, 23, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 255, 255, 0.2);
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
-        }
-
-        .cyber-input {
-            background: rgba(0, 0, 0, 0.5) !important;
-            border: 1px solid rgba(0, 255, 255, 0.3) !important;
-            color: #00ffff !important;
-        }
-
-        .cyber-input:focus {
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-            border-color: #00ffff !important;
-        }
-
-        .neon-text {
-            text-shadow: 0 0 8px rgba(0, 255, 255, 0.8);
-        }
-
-        .glitch-btn:hover {
-            text-shadow: 2px 0 #ff00c1, -2px 0 #00fff9;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
-        }
+        .status-valid { color: #00ff41; text-shadow: 0 0 5px #00ff41; }
+        .status-invalid { color: #ff0000; text-shadow: 0 0 5px #ff0000; }
     </style>
 </head>
-<body class="h-screen flex items-center justify-center p-4">
-    <div class="scanline"></div>
+<body>
 
-    <div class="max-w-md w-full cyber-card rounded-none p-[2px]"> <div class="bg-[#0d1117] p-8 relative overflow-hidden">
-            
-            <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-cyan-500"></div>
-            <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-cyan-500"></div>
-            <div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-cyan-500"></div>
-            <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-cyan-500"></div>
-
-            <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-20 h-20 mb-4 border border-cyan-500/50 rounded-full">
-                    <i class="fas fa-fingerprint text-4xl text-cyan-400 animate-pulse"></i>
-                </div>
-                <h2 class="text-2xl font-bold text-cyan-400 tracking-widest uppercase neon-text">Access Override</h2>
-                <div class="flex items-center justify-center gap-2 mt-2">
-                    <span class="h-[1px] w-8 bg-cyan-900"></span>
-                    <p class="text-cyan-700 text-[10px] uppercase">Level 4 Authorization Required</p>
-                    <span class="h-[1px] w-8 bg-cyan-900"></span>
+    <div id="login-container" class="h-screen flex items-center justify-center bg-black">
+        <div class="w-[400px] cyber-panel p-8 border-t-4 border-t-green-600">
+            <div class="text-center mb-6">
+                <i class="fas fa-shield-virus text-4xl mb-2"></i>
+                <h2 class="text-lg font-bold tracking-tighter uppercase">Xác thực Định danh HPH-SOC</h2>
+                <div class="h-1 w-full bg-green-900 mt-2">
+                    <div id="load-bar" class="h-full bg-green-400 transition-all duration-300" style="width: 0%"></div>
                 </div>
             </div>
 
-            <form action="#" method="POST" class="space-y-6">
-                <div>
-                    <label class="block text-cyan-600 text-[10px] uppercase font-bold mb-1 tracking-wider">Operator Identity</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-cyan-500/50">
-                            <i class="fas fa-terminal"></i>
-                        </span>
-                        <input class="w-full pl-10 pr-4 py-3 cyber-input rounded-none focus:outline-none transition-all placeholder-cyan-900" 
-                               type="text" placeholder="ID_ALPHA_CORE" required>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-cyan-600 text-[10px] uppercase font-bold mb-1 tracking-wider">Access Cipher</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-cyan-500/50">
-                            <i class="fas fa-key"></i>
-                        </span>
-                        <input class="w-full pl-10 pr-4 py-3 cyber-input rounded-none focus:outline-none transition-all placeholder-cyan-900" 
-                               type="password" placeholder="********" required>
-                    </div>
-                </div>
-
-                <button class="w-full bg-cyan-600 hover:bg-cyan-400 text-black font-black py-3 uppercase tracking-[0.2em] transition-all glitch-btn relative overflow-hidden group">
-                    <span class="relative z-10">Initialize System</span>
-                    <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
-                </button>
-
-                <div class="flex items-center justify-between text-[10px] text-cyan-800">
-                    <a href="#" class="hover:text-cyan-400 transition-colors uppercase"><i class="fas fa-link mr-1"></i> Lost Access?</a>
-                    <span class="animate-pulse">System: Online</span>
-                </div>
+            <form id="auth-form" class="space-y-4">
+                <input type="text" id="user" placeholder="Mã vận hành (Operator ID)" required class="w-full bg-black border border-green-900 p-3 outline-none focus:border-green-400 text-sm">
+                <input type="password" id="pass" placeholder="Mật mã Cipher" required class="w-full bg-black border border-green-900 p-3 outline-none focus:border-green-400 text-sm">
+                <button class="w-full bg-green-800 hover:bg-green-600 text-black font-bold py-3 transition-all uppercase text-sm">Gửi Yêu Cầu Truy Cập</button>
             </form>
+            
+            <p class="text-[9px] mt-4 text-green-900 text-center italic">Cảnh báo: Mọi phiên truy cập được ghi lại bởi Máy chủ Công an TP. Hải Phòng</p>
         </div>
+    </div>
 
-        <div class="bg-black/50 px-8 py-3 border-t border-cyan-900/50 flex flex-col items-center">
-            <div class="flex items-center space-x-2 text-[9px] text-red-500/70 mb-2">
-                <i class="fas fa-triangle-exclamation"></i>
-                <p class="uppercase tracking-tighter italic">Warning: Authorized Personnel Only. IP logging active.</p>
+    <div id="main-system" class="hidden h-screen flex flex-col p-2 space-y-2">
+        
+        <header class="h-12 cyber-panel flex items-center justify-between px-4 border-b-2 border-green-600">
+            <div class="flex items-center space-x-4">
+                <span class="font-bold text-sm tracking-widest">HPH_SEC_V5.0</span>
+                <span class="text-[10px] bg-green-900 text-black px-2 py-0.5 font-bold">NODE: HẢI PHÒNG (CAT BI)</span>
             </div>
-            <p class="text-[8px] text-cyan-900 uppercase">Secure Node: 192.168.1.0 // Auth_v4.2</p>
+            <div class="text-[11px] space-x-6">
+                <span>USER: <span id="display-user">ADMIN</span></span>
+                <span>IP: <span id="display-ip">14.226.x.x</span></span>
+                <span class="text-green-300" id="clock">00:00:00</span>
+            </div>
+        </header>
+
+        <div class="flex-1 flex space-x-2 overflow-hidden">
+            
+            <div class="w-1/4 flex flex-col space-y-2">
+                <div class="flex-1 cyber-panel p-3">
+                    <h3 class="text-[10px] border-b border-green-900 pb-1 mb-2">THIẾT BỊ TRUY CẬP</h3>
+                    <div class="space-y-2 text-[11px]">
+                        <div class="flex justify-between"><span>Địa chỉ MAC:</span><span id="mac-val">00:1A:2B:3C:4D:5E</span></div>
+                        <div class="flex justify-between"><span>Tình trạng MAC:</span><span id="mac-status" class="status-valid">HỢP LỆ</span></div>
+                        <div class="flex justify-between"><span>Tọa độ truy cập:</span><span>20.84°N 106.68°E</span></div>
+                    </div>
+                    
+                    <h3 class="text-[10px] border-b border-green-900 pb-1 mt-6 mb-2">QUÉT CỔNG DỮ LIỆU</h3>
+                    <div class="grid grid-cols-5 gap-1">
+                        <div class="h-4 bg-green-900/50 border border-green-500 animate-pulse"></div>
+                        <div class="h-4 bg-green-900/50 border border-green-500"></div>
+                        <div class="h-4 bg-red-900/50 border border-red-500"></div>
+                        <div class="h-4 bg-green-900/50 border border-green-500 animate-pulse"></div>
+                        <div class="h-4 bg-green-900/50 border border-green-500"></div>
+                    </div>
+                </div>
+                <div class="h-1/3 cyber-panel p-3 map-grid relative">
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-[10px] bg-black/80 p-1 border border-green-500">VỊ TRÍ: CẢNG ĐÌNH VŨ</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-1 cyber-panel relative map-grid">
+                <div class="absolute top-2 right-2 text-[10px] text-right">
+                    <p class="text-red-500 font-bold glitch-text">!!! CẢNH BÁO XÂM NHẬP PORT 443 !!!</p>
+                    <p>PHÂN KHU: QUẬN HỒNG BÀNG</p>
+                </div>
+                <div class="flex items-center justify-center h-full">
+                    <div class="w-64 h-64 border-4 border-green-900 rounded-full flex items-center justify-center relative">
+                        <div class="w-full h-1 bg-green-500/20 absolute animate-spin" style="transform-origin: center;"></div>
+                        <i class="fas fa-crosshairs text-4xl opacity-20"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-1/4 cyber-panel p-3 flex flex-col">
+                <h3 class="text-[10px] border-b border-green-900 pb-1 mb-2">NHẬT KÝ HỆ THỐNG</h3>
+                <div id="log-box" class="flex-1 text-[9px] overflow-y-auto space-y-1 font-mono">
+                    </div>
+            </div>
+
         </div>
+
+        <footer class="h-8 cyber-panel flex items-center justify-between px-4 text-[9px]">
+            <div class="flex space-x-4">
+                <span>CPU: 14%</span>
+                <span>RAM: 2.4GB / 16GB</span>
+                <span>DATA RATE: 450 Mbps</span>
+            </div>
+            <div class="uppercase tracking-widest text-green-700">Chỉ dành cho mục đích giám sát quốc gia</div>
+        </footer>
     </div>
 
-    <div class="fixed top-10 left-10 text-cyan-900 text-xs hidden md:block">
-        <p>> SYS_STATUS: STABLE</p>
-        <p>> ENCRYPTION: AES-256</p>
-        <p>> UPTIME: 142:09:55</p>
-    </div>
+    <script>
+        const authForm = document.getElementById('auth-form');
+        const loginContainer = document.getElementById('login-container');
+        const mainSystem = document.getElementById('main-system');
+        const loadBar = document.getElementById('load-bar');
+        const logBox = document.getElementById('log-box');
+
+        // Giả lập lấy thông tin người dùng
+        const userIntel = {
+            ip: "27.67.12.184", // Một dải IP thực tại Hải Phòng
+            mac: "E4:5F:01:A2:B4:88",
+            isValid: true
+        };
+
+        // Đồng hồ
+        setInterval(() => {
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString('vi-VN');
+        }, 1000);
+
+        function pushLog(text, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type === 'alert' ? 'text-red-500' : 'text-green-700';
+            div.innerHTML = `> [${new Date().toLocaleTimeString()}] ${text}`;
+            logBox.appendChild(div);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        authForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('user').value;
+            
+            // Chạy thanh loading
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 5;
+                loadBar.style.width = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    enterSystem(username);
+                }
+            }, 50);
+        });
+
+        function enterSystem(username) {
+            loginContainer.classList.add('hidden');
+            mainSystem.classList.remove('hidden');
+            
+            document.getElementById('display-user').innerText = username.toUpperCase();
+            document.getElementById('display-ip').innerText = userIntel.ip;
+            document.getElementById('mac-val').innerText = userIntel.mac;
+
+            // Kiểm tra MAC giả lập
+            if(userIntel.isValid) {
+                pushLog("Xác thực thiết bị thành công.", 'info');
+            } else {
+                document.getElementById('mac-status').innerText = "KHÔNG XÁC ĐỊNH";
+                document.getElementById('mac-status').className = "status-invalid";
+                pushLog("CẢNH BÁO: Thiết bị lạ truy cập!", 'alert');
+            }
+
+            pushLog(`Khởi tạo Node: Hải Phòng - Trạm phát Cat Bi.`);
+            pushLog(`Đang kết nối cơ sở dữ liệu Cảng Đình Vũ...`);
+            
+            // Chạy logs giả lập
+            setInterval(() => {
+                const events = [
+                    "Đang quét lưu lượng tại Cầu Bính...",
+                    "Kết nối ổn định với trung tâm điều hành Hà Nội.",
+                    "Phát hiện truy cập trái phép từ IP 103.x.x.x (Đã chặn)",
+                    "Kiểm tra hệ thống camera khu vực Quận Đồ Sơn...",
+                    "Đồng bộ dữ liệu mã hóa AES-256 hoàn tất."
+                ];
+                pushLog(events[Math.floor(Math.random() * events.length)]);
+            }, 4000);
+        }
+    </script>
 </body>
 </html>
