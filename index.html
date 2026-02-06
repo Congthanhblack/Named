@@ -6,7 +6,7 @@
     <title>HPH-SOC // TRUNG TÂM GIÁM SÁT ĐIỀU HÀNH THÔNG MINH</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&family=Times+New+Roman:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         body { background-color: #09090b; color: #e2e8f0; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; width: 100vw; }
         .cyber-border { border: 1px solid #27272a; background: rgba(12, 12, 15, 0.9); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
@@ -17,7 +17,8 @@
         .camera-grid-layout { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; grid-template-rows: repeat(3, 1fr) !important; gap: 8px; }
         .cam-slot { position: relative; background: #000; border: 1px solid #18181b; aspect-ratio: 16 / 9; overflow: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .cam-slot:hover { border-color: #3b82f6; z-index: 10; box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); }
-        .gov-paper { background: #fff; color: #000; font-family: 'Times New Roman', serif; max-width: 800px; width: 95%; padding: 40px; border: 1px solid #000; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8); position: relative; }
+        /* Sửa font cho bảng thông báo */
+        .gov-paper { background: #fff; color: #000; font-family: 'Noto Serif', serif; max-width: 800px; width: 95%; padding: 40px; border: 1px solid #000; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8); position: relative; }
         .blink { animation: blinker 2s step-start infinite; }
         @keyframes blinker { 50% { opacity: 0; } }
         .tab-btn { background: #18181b; border: 1px solid #27272a; color: #a1a1aa; transition: all 0.2s; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; }
@@ -76,7 +77,7 @@
                     </div>
                     <div class="p-3 border-t border-slate-800 flex items-center bg-black">
                         <span class="text-blue-500 text-[12px] font-bold mr-3 italic">$</span>
-                        <input type="text" id="cli-input" class="bg-transparent border-none outline-none text-slate-300 text-[11px] w-full mono-text" placeholder="Command...">
+                        <input type="text" id="cli-input" class="bg-transparent border-none outline-none text-slate-300 text-[11px] w-full mono-text" placeholder="Type a command..." onkeypress="if(event.key === 'Enter') executeCommand(this.value)">
                     </div>
                 </div>
             </div>
@@ -97,7 +98,7 @@
 
     <div id="gov-modal" class="fixed inset-0 z-[1000] hidden flex items-center justify-center bg-black/90 backdrop-blur-sm">
         <div class="gov-paper">
-            <div class="border border-black text-[13px] font-serif mb-6">
+            <div class="border border-black text-[14px] mb-6">
                 <div class="border-b border-black px-4 py-3 text-center">
                     <p class="font-bold uppercase tracking-wide">Security Access Notification</p>
                     <p class="text-[12px] italic">Controlled Camera Data – IOC System</p>
@@ -206,6 +207,32 @@
             }
         }
 
+        // GIẢ LẬP QUÁ TRÌNH CODE THẬT
+        async function executeCommand(val) {
+            if (!val.trim()) return;
+            const screen = document.getElementById('terminal-screen');
+            const input = document.getElementById('cli-input');
+            input.value = '';
+            
+            const lines = [
+                `> Executing: ${val}`,
+                `> Searching repository...`,
+                `> Fetching data from HPH-Internal-DB...`,
+                `> Applying security protocols...`,
+                `> Status: [${val.toUpperCase()}] Command processed successfully.`
+            ];
+
+            for (let line of lines) {
+                const div = document.createElement('div');
+                div.className = "mt-1";
+                div.innerText = line;
+                screen.appendChild(div);
+                screen.scrollTop = screen.scrollHeight;
+                await new Promise(r => setTimeout(r, 400)); // Delay tạo cảm giác code chạy
+            }
+            addLog(`CLI: Executed command [${val}]`, 'info');
+        }
+
         function triggerGovAlert(cam) {
             document.getElementById('alert-cam-id').innerText = cam.id;
             document.getElementById('alert-cam-name').innerText = cam.name;
@@ -230,26 +257,18 @@
             box.prepend(div);
         }
 
-        // SỬA LỖI ĐĂNG NHẬP TẠI ĐÂY
         function handleLogin() {
             const passInput = document.getElementById('login-pass');
             if(passInput.value.trim().length > 0) {
-                // Ẩn lớp đăng nhập
                 document.getElementById('login-layer').classList.add('hidden');
-                // Hiện dashboard
                 document.getElementById('main-dashboard').classList.remove('hidden');
-                
-                // Khởi tạo dữ liệu
                 createCameraGrid();
-                
-                // Bắt đầu đếm ngược session
                 setInterval(() => {
                     const timer = document.getElementById('session-timer');
                     let [m, s] = timer.innerText.split(':').map(Number);
                     if(s === 0) { if(m>0) {m--; s=59;} } else { s--; }
                     timer.innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
                 }, 1000);
-                
                 addLog("User authenticated. Session started.", "info");
             } else {
                 document.getElementById('login-err').innerText = "Vui lòng nhập mã truy cập.";
