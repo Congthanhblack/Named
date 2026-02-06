@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HPH Security Control | Hệ Thống Giám Sát Hải Phòng</title>
+    <title>HPH Intelligence System | Trung Tâm SOC Hải Phòng</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -11,120 +11,194 @@
 
         body {
             background-color: #010409;
-            color: #00ff41; /* Màu xanh terminal kinh điển */
+            color: #00ff41;
             font-family: 'Space Mono', monospace;
             overflow: hidden;
+            height: 100vh;
         }
 
         .cyber-panel {
-            background: rgba(1, 4, 9, 0.9);
+            background: rgba(1, 4, 9, 0.95);
             border: 1px solid #004411;
+        }
+
+        .map-container iframe {
+            filter: invert(90%) hue-rotate(180deg) brightness(95%) contrast(90%);
+        }
+
+        .cam-feed {
             position: relative;
+            background: #000;
+            border: 1px solid #004411;
+            aspect-ratio: 16/9;
+            overflow: hidden;
         }
 
-        .glitch-text { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-
-        .map-grid {
-            background-image: radial-gradient(#004411 1px, transparent 1px);
-            background-size: 20px 20px;
+        .cam-label {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 2px 8px;
+            font-size: 9px;
+            z-index: 10;
+            border-left: 2px solid #00ff41;
         }
 
-        .status-valid { color: #00ff41; text-shadow: 0 0 5px #00ff41; }
-        .status-invalid { color: #ff0000; text-shadow: 0 0 5px #ff0000; }
+        .rec-dot {
+            width: 6px;
+            height: 6px;
+            background: #ff0000;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 255, 65, 0.1);
+            position: absolute;
+            animation: moveScan 4s linear infinite;
+        }
+
+        @keyframes moveScan { from { top: 0; } to { top: 100%; } }
     </style>
 </head>
 <body>
 
-    <div id="login-container" class="h-screen flex items-center justify-center bg-black">
-        <div class="w-[400px] cyber-panel p-8 border-t-4 border-t-green-600">
-            <div class="text-center mb-6">
-                <i class="fas fa-shield-virus text-4xl mb-2"></i>
-                <h2 class="text-lg font-bold tracking-tighter uppercase">Xác thực Định danh HPH-SOC</h2>
-                <div class="h-1 w-full bg-green-900 mt-2">
-                    <div id="load-bar" class="h-full bg-green-400 transition-all duration-300" style="width: 0%"></div>
-                </div>
+    <div id="login-container" class="h-screen flex items-center justify-center bg-black z-50 relative">
+        <div class="w-[420px] cyber-panel p-10 border-t-4 border-t-green-600 shadow-2xl">
+            <div class="text-center mb-8">
+                <i class="fas fa-shield-halved text-5xl mb-4 text-green-500"></i>
+                <h2 class="text-xl font-bold uppercase tracking-[0.2em] text-white">HPH-SOC CORE</h2>
+                <p class="text-[10px] text-green-700 mt-2 uppercase">Hệ thống giám sát an ninh thành phố Hải Phòng</p>
             </div>
-
-            <form id="auth-form" class="space-y-4">
-                <input type="text" id="user" placeholder="Mã vận hành (Operator ID)" required class="w-full bg-black border border-green-900 p-3 outline-none focus:border-green-400 text-sm">
-                <input type="password" id="pass" placeholder="Mật mã Cipher" required class="w-full bg-black border border-green-900 p-3 outline-none focus:border-green-400 text-sm">
-                <button class="w-full bg-green-800 hover:bg-green-600 text-black font-bold py-3 transition-all uppercase text-sm">Gửi Yêu Cầu Truy Cập</button>
+            <form id="auth-form" class="space-y-5">
+                <div>
+                    <label class="block text-[10px] uppercase mb-1 text-green-800">Mã vận hành</label>
+                    <input type="text" id="user" placeholder="OPERATOR_ID" required class="w-full bg-black border border-green-900 p-3 outline-none focus:border-green-400 text-sm tracking-widest">
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase mb-1 text-green-800">Mật mã truy cập</label>
+                    <input type="password" id="pass" placeholder="ACCESS_CIPHER" required class="w-full bg-black border border-green-900 p-3 outline-none focus:border-green-400 text-sm tracking-widest">
+                </div>
+                <button class="w-full bg-green-700 hover:bg-green-500 text-black font-black py-4 uppercase text-sm tracking-widest transition-all">Thiết lập kết nối</button>
             </form>
-            
-            <p class="text-[9px] mt-4 text-green-900 text-center italic">Cảnh báo: Mọi phiên truy cập được ghi lại bởi Máy chủ Công an TP. Hải Phòng</p>
+            <div class="mt-8 pt-4 border-t border-green-900/30 text-[9px] text-center text-green-900 uppercase">
+                An ninh đa lớp AES-256 // Cục an ninh mạng HP
+            </div>
         </div>
     </div>
 
     <div id="main-system" class="hidden h-screen flex flex-col p-2 space-y-2">
         
-        <header class="h-12 cyber-panel flex items-center justify-between px-4 border-b-2 border-green-600">
-            <div class="flex items-center space-x-4">
-                <span class="font-bold text-sm tracking-widest">HPH_SEC_V5.0</span>
-                <span class="text-[10px] bg-green-900 text-black px-2 py-0.5 font-bold">NODE: HẢI PHÒNG (CAT BI)</span>
+        <header class="h-12 cyber-panel flex items-center justify-between px-6 border-b border-green-600">
+            <div class="flex items-center space-x-6">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-microchip animate-pulse"></i>
+                    <span class="font-bold text-xs tracking-widest text-white">HPH-SOC // COMMAND CENTER</span>
+                </div>
+                <div class="h-4 w-[1px] bg-green-900"></div>
+                <span class="text-[10px] uppercase">Trạm: <span class="text-green-400">Hải Phòng - Node 01</span></span>
             </div>
-            <div class="text-[11px] space-x-6">
-                <span>USER: <span id="display-user">ADMIN</span></span>
-                <span>IP: <span id="display-ip">14.226.x.x</span></span>
-                <span class="text-green-300" id="clock">00:00:00</span>
+            <div class="text-[10px] flex space-x-8 items-center">
+                <span>Tọa độ: <span class="text-white">20.8449°N 106.6881°E</span></span>
+                <div class="h-4 w-[1px] bg-green-900"></div>
+                <span id="clock" class="text-green-400 font-bold text-sm">--:--:--</span>
             </div>
         </header>
 
         <div class="flex-1 flex space-x-2 overflow-hidden">
             
             <div class="w-1/4 flex flex-col space-y-2">
-                <div class="flex-1 cyber-panel p-3">
-                    <h3 class="text-[10px] border-b border-green-900 pb-1 mb-2">THIẾT BỊ TRUY CẬP</h3>
-                    <div class="space-y-2 text-[11px]">
-                        <div class="flex justify-between"><span>Địa chỉ MAC:</span><span id="mac-val">00:1A:2B:3C:4D:5E</span></div>
-                        <div class="flex justify-between"><span>Tình trạng MAC:</span><span id="mac-status" class="status-valid">HỢP LỆ</span></div>
-                        <div class="flex justify-between"><span>Tọa độ truy cập:</span><span>20.84°N 106.68°E</span></div>
+                <div class="flex-1 cyber-panel p-4 overflow-hidden flex flex-col">
+                    <h3 class="text-[10px] border-b border-green-900 pb-2 mb-4 text-green-500 font-bold uppercase tracking-widest">Xác thực thiết bị cuối</h3>
+                    <div class="space-y-4 text-[11px]">
+                        <div class="flex justify-between"><span>Địa chỉ IP:</span><span id="display-ip" class="text-white font-bold tracking-wider text-right font-mono">14.226.55.184</span></div>
+                        <div class="flex justify-between"><span>Địa chỉ MAC:</span><span id="display-mac" class="text-white font-bold tracking-wider text-right font-mono">E4:5F:01:A2:B4:88</span></div>
+                        <div class="flex justify-between items-center">
+                            <span>Tình trạng:</span>
+                            <span class="px-2 py-0.5 bg-green-900/30 text-[9px] border border-green-500">KẾT NỐI AN TOÀN</span>
+                        </div>
                     </div>
-                    
-                    <h3 class="text-[10px] border-b border-green-900 pb-1 mt-6 mb-2">QUÉT CỔNG DỮ LIỆU</h3>
-                    <div class="grid grid-cols-5 gap-1">
-                        <div class="h-4 bg-green-900/50 border border-green-500 animate-pulse"></div>
-                        <div class="h-4 bg-green-900/50 border border-green-500"></div>
-                        <div class="h-4 bg-red-900/50 border border-red-500"></div>
-                        <div class="h-4 bg-green-900/50 border border-green-500 animate-pulse"></div>
-                        <div class="h-4 bg-green-900/50 border border-green-500"></div>
-                    </div>
-                </div>
-                <div class="h-1/3 cyber-panel p-3 map-grid relative">
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <span class="text-[10px] bg-black/80 p-1 border border-green-500">VỊ TRÍ: CẢNG ĐÌNH VŨ</span>
-                    </div>
+
+                    <h3 class="text-[10px] border-b border-green-900 pb-2 mt-8 mb-4 text-green-500 font-bold uppercase tracking-widest">Sự kiện thời gian thực</h3>
+                    <div id="log-box" class="flex-1 text-[9px] overflow-y-auto space-y-2 font-mono opacity-80 scrollbar-hide">
+                        </div>
                 </div>
             </div>
 
-            <div class="flex-1 cyber-panel relative map-grid">
-                <div class="absolute top-2 right-2 text-[10px] text-right">
-                    <p class="text-red-500 font-bold glitch-text">!!! CẢNH BÁO XÂM NHẬP PORT 443 !!!</p>
-                    <p>PHÂN KHU: QUẬN HỒNG BÀNG</p>
+            <div class="flex-1 cyber-panel overflow-hidden map-container relative">
+                <div class="absolute top-4 left-4 z-10 bg-black/90 p-3 text-[10px] border border-green-700 shadow-xl">
+                    <i class="fas fa-location-dot mr-2 text-red-500"></i> GIÁM SÁT HẠ TẦNG GIAO THÔNG TP. HẢI PHÒNG
                 </div>
-                <div class="flex items-center justify-center h-full">
-                    <div class="w-64 h-64 border-4 border-green-900 rounded-full flex items-center justify-center relative">
-                        <div class="w-full h-1 bg-green-500/20 absolute animate-spin" style="transform-origin: center;"></div>
-                        <i class="fas fa-crosshairs text-4xl opacity-20"></i>
-                    </div>
-                </div>
+                <iframe 
+                    width="100%" 
+                    height="100%" 
+                    frameborder="0" 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m12!1m3!1d119213.34211116246!2d106.61868498565166!3d20.8449!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x314a7af3aa68b9b7%3A0x613271918e806060!2zSOG6o2kgUGjDsm5nLCBWaeG7h3QgTmFt!5e0!3m2!1svi!2s!4v1714856000000!5m2!1svi!2s"
+                    allowfullscreen="" 
+                    loading="lazy">
+                </iframe>
             </div>
 
-            <div class="w-1/4 cyber-panel p-3 flex flex-col">
-                <h3 class="text-[10px] border-b border-green-900 pb-1 mb-2">NHẬT KÝ HỆ THỐNG</h3>
-                <div id="log-box" class="flex-1 text-[9px] overflow-y-auto space-y-1 font-mono">
+            <div class="w-1/3 cyber-panel p-3 flex flex-col">
+                <h3 class="text-[10px] border-b border-green-900 pb-2 mb-3 text-green-500 font-bold uppercase tracking-widest text-center">Hệ thống Camera Giám sát (CCTV)</h3>
+                
+                <div class="grid grid-cols-2 gap-2 flex-1 overflow-y-auto pr-1">
+                    <div class="cam-feed">
+                        <div class="cam-label"><span class="rec-dot"></span>CAM_01: CẦU BÍNH</div>
+                        <div class="scanline"></div>
+                        <img src="https://images.unsplash.com/photo-1545147986-a9d6f210df77?auto=format&fit=crop&w=400&q=80" class="grayscale w-full h-full object-cover opacity-60">
                     </div>
-            </div>
+                    <div class="cam-feed">
+                        <div class="cam-label"><span class="rec-dot"></span>CAM_02: NGÃ 4 QUÁN TOAN</div>
+                        <div class="scanline"></div>
+                        <img src="https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=400&q=80" class="grayscale w-full h-full object-cover opacity-60">
+                    </div>
+                    <div class="cam-feed">
+                        <div class="cam-label"><span class="rec-dot"></span>CAM_03: CẢNG ĐÌNH VŨ</div>
+                        <div class="scanline"></div>
+                        <img src="https://images.unsplash.com/photo-1493946747714-751e84443bd1?auto=format&fit=crop&w=400&q=80" class="grayscale w-full h-full object-cover opacity-60">
+                    </div>
+                    <div class="cam-feed">
+                        <div class="cam-label"><span class="rec-dot"></span>CAM_04: LÊ HỒNG PHONG</div>
+                        <div class="scanline"></div>
+                        <img src="https://images.unsplash.com/photo-1542362567-b055002b91f4?auto=format&fit=crop&w=400&q=80" class="grayscale w-full h-full object-cover opacity-60">
+                    </div>
+                    <div class="cam-feed">
+                        <div class="cam-label"><span class="rec-dot"></span>CAM_05: CAO TỐC HN-HP</div>
+                        <div class="scanline"></div>
+                        <div class="w-full h-full flex items-center justify-center text-[8px] text-green-900 italic">MẤT TÍN HIỆU - KIỂM TRA ĐƯỜNG TRUYỀN</div>
+                    </div>
+                    <div class="cam-feed">
+                        <div class="cam-label"><span class="rec-dot"></span>CAM_06: CẦU HOÀNG VĂN THỤ</div>
+                        <div class="scanline"></div>
+                        <img src="https://images.unsplash.com/photo-1573103662264-0797302f37c2?auto=format&fit=crop&w=400&q=80" class="grayscale w-full h-full object-cover opacity-60">
+                    </div>
+                </div>
 
+                <div class="mt-4 p-3 bg-red-900/10 border border-red-900/40 text-[9px]">
+                    <p class="text-red-500 font-bold mb-1"><i class="fas fa-triangle-exclamation mr-1"></i> PHÁT HIỆN BIỂN SỐ TRONG DANH SÁCH TRUY VẾT</p>
+                    <p class="text-green-700 font-bold uppercase font-mono">Đối tượng: 15A-888.88 // Vị trí: Cầu Bính</p>
+                </div>
+            </div>
         </div>
 
-        <footer class="h-8 cyber-panel flex items-center justify-between px-4 text-[9px]">
-            <div class="flex space-x-4">
-                <span>CPU: 14%</span>
-                <span>RAM: 2.4GB / 16GB</span>
-                <span>DATA RATE: 450 Mbps</span>
+        <footer class="h-8 flex items-center justify-between px-6 text-[9px] cyber-panel border-t border-green-600">
+            <div class="flex space-x-6 text-green-800 font-bold">
+                <span>DỮ LIỆU ĐƯỢC MÃ HÓA RSA-4096</span>
+                <span>CORE_TEMP: 42°C</span>
+                <span>NETWORK: 1.2 Gbps</span>
             </div>
-            <div class="uppercase tracking-widest text-green-700">Chỉ dành cho mục đích giám sát quốc gia</div>
+            <span class="uppercase tracking-widest text-green-600">Ban chỉ đạo chuyển đổi số thành phố Hải Phòng © 2026</span>
+            <div class="flex space-x-4">
+                <span>Hệ thống: <span class="text-white">ỔN ĐỊNH</span></span>
+            </div>
         </footer>
     </div>
 
@@ -132,76 +206,49 @@
         const authForm = document.getElementById('auth-form');
         const loginContainer = document.getElementById('login-container');
         const mainSystem = document.getElementById('main-system');
-        const loadBar = document.getElementById('load-bar');
         const logBox = document.getElementById('log-box');
 
-        // Giả lập lấy thông tin người dùng
-        const userIntel = {
-            ip: "27.67.12.184", // Một dải IP thực tại Hải Phòng
-            mac: "E4:5F:01:A2:B4:88",
-            isValid: true
-        };
-
-        // Đồng hồ
         setInterval(() => {
             document.getElementById('clock').innerText = new Date().toLocaleTimeString('vi-VN');
         }, 1000);
 
-        function pushLog(text, type = 'info') {
+        function addLog(msg, color = 'green') {
             const div = document.createElement('div');
-            div.className = type === 'alert' ? 'text-red-500' : 'text-green-700';
-            div.innerHTML = `> [${new Date().toLocaleTimeString()}] ${text}`;
+            div.className = color === 'red' ? 'text-red-500' : 'text-green-800';
+            div.innerHTML = `> [${new Date().toLocaleTimeString()}] ${msg}`;
             logBox.appendChild(div);
             logBox.scrollTop = logBox.scrollHeight;
         }
 
         authForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const username = document.getElementById('user').value;
+            const user = document.getElementById('user').value;
             
-            // Chạy thanh loading
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += 5;
-                loadBar.style.width = progress + '%';
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    enterSystem(username);
-                }
-            }, 50);
+            document.querySelector('button').innerText = "ĐANG THIẾT LẬP KẾT NỐI...";
+            
+            setTimeout(() => {
+                loginContainer.style.display = 'none';
+                mainSystem.classList.remove('hidden');
+                initializeOperationalState(user);
+            }, 1200);
         });
 
-        function enterSystem(username) {
-            loginContainer.classList.add('hidden');
-            mainSystem.classList.remove('hidden');
+        function initializeOperationalState(user) {
+            addLog(`Người vận hành: ${user.toUpperCase()} đã đăng nhập.`, 'green');
+            addLog(`Xác minh địa chỉ IP: 14.226.55.184 thành công.`, 'green');
+            addLog(`Đang truy xuất dữ liệu từ các Node giao thông...`, 'green');
+            addLog(`Khởi động luồng dữ liệu camera độ phân giải cao.`, 'green');
             
-            document.getElementById('display-user').innerText = username.toUpperCase();
-            document.getElementById('display-ip').innerText = userIntel.ip;
-            document.getElementById('mac-val').innerText = userIntel.mac;
-
-            // Kiểm tra MAC giả lập
-            if(userIntel.isValid) {
-                pushLog("Xác thực thiết bị thành công.", 'info');
-            } else {
-                document.getElementById('mac-status').innerText = "KHÔNG XÁC ĐỊNH";
-                document.getElementById('mac-status').className = "status-invalid";
-                pushLog("CẢNH BÁO: Thiết bị lạ truy cập!", 'alert');
-            }
-
-            pushLog(`Khởi tạo Node: Hải Phòng - Trạm phát Cat Bi.`);
-            pushLog(`Đang kết nối cơ sở dữ liệu Cảng Đình Vũ...`);
-            
-            // Chạy logs giả lập
             setInterval(() => {
-                const events = [
-                    "Đang quét lưu lượng tại Cầu Bính...",
-                    "Kết nối ổn định với trung tâm điều hành Hà Nội.",
-                    "Phát hiện truy cập trái phép từ IP 103.x.x.x (Đã chặn)",
-                    "Kiểm tra hệ thống camera khu vực Quận Đồ Sơn...",
-                    "Đồng bộ dữ liệu mã hóa AES-256 hoàn tất."
+                const logs = [
+                    "Đang quét mật độ lưu thông tại Cảng Đình Vũ.",
+                    "Kiểm tra tình trạng chiếu sáng tại khu vực Quận Đồ Sơn.",
+                    "Đồng bộ hóa dữ liệu với Trung tâm điều hành Quốc gia.",
+                    "Tự động rà soát vi phạm tại nút giao Lê Hồng Phong.",
+                    "Phát hiện lưu lượng mạng tăng đột biến tại cổng 8080."
                 ];
-                pushLog(events[Math.floor(Math.random() * events.length)]);
-            }, 4000);
+                addLog(logs[Math.floor(Math.random() * logs.length)]);
+            }, 6000);
         }
     </script>
 </body>
